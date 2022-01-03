@@ -27,4 +27,37 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	profileEndpoint.GET("/roles", routesHandler.getRolesHandler)
 	profileEndpoint.GET("/permissions", routesHandler.getPermissionsHandler)
 
+	projectsEndpoint := authenticatedEndpoint.Group("/projects")
+	projectsEndpoint.GET("", routesHandler.getProjectsHandler)
+	projectsEndpoint.POST("", routesHandler.createProjectHandler)
+
+	selectedProjectEndpoint := projectsEndpoint.Group("/:project_id")
+	selectedProjectEndpoint.GET("", routesHandler.getProjectHandler)
+	selectedProjectEndpoint.PUT("", routesHandler.updateProjectHandler)
+	selectedProjectEndpoint.DELETE("", routesHandler.deleteProjectHandler)
+
+	//This endpoint is used to get the environment list and create an environment
+	environmentEndpoint := selectedProjectEndpoint.Group("/environments")
+	environmentEndpoint.GET("", routesHandler.getEnvironmentsHandler)
+	environmentEndpoint.POST("", routesHandler.createEnvironmentHandler)
+	environmentEndpoint.Group("/:environment_id").
+		DELETE("", routesHandler.deleteEnvironmentHandler)
+
+	serviceEndpoint := selectedProjectEndpoint.Group("/services")
+	serviceEndpoint.GET("", routesHandler.getServicesHandler)
+	serviceEndpoint.POST("", routesHandler.createServiceHandler)
+
+	environmentServiceEndpoint := serviceEndpoint.Group("/:environment_id")
+
+	selectedServiceEndpoint := environmentServiceEndpoint.Group("/:service_id")
+	selectedServiceEndpoint.GET("", routesHandler.getServiceHandler)
+	selectedServiceEndpoint.PUT("", routesHandler.updateServiceHandler)
+	selectedServiceEndpoint.DELETE("", routesHandler.deleteServiceHandler)
+
+	serviceInstanceEndpoint := selectedServiceEndpoint.Group("/instances")
+	serviceInstanceEndpoint.GET("", routesHandler.getServiceInstancesHandler)
+
+	selectedServiceInstanceEndpoint := serviceInstanceEndpoint.Group("/:instance_id")
+	selectedServiceInstanceEndpoint.GET("", routesHandler.getServiceInstanceHandler)
+	selectedServiceInstanceEndpoint.DELETE("", routesHandler.deleteServiceInstanceHandler)
 }
