@@ -15,4 +15,12 @@ type Environment struct {
 
 	ID          uuid.UUID
 	DisplayName string
+	Project     Project
+	ProjectId   uuid.UUID
+}
+
+func NewEnvironmentRepo(db *gorm.DB) environmentRepo {
+	return environmentRepo{
+		db: db,
+	}
 }

@@ -1,7 +1,7 @@
 package templates
 
 import (
-	"github.com/AliceDiNunno/rack-controller/src/adapters/gateway/kubernetes/utils"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes/utils"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/davecgh/go-spew/spew"
 	corev1 "k8s.io/api/core/v1"

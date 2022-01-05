@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"context"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/adapters/gateway/kubernetes/templates"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes/templates"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

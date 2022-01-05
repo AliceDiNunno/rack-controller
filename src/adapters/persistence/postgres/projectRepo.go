@@ -18,3 +18,9 @@ type Project struct {
 	Environments []Environment
 	Services     []Service
 }
+
+func NewProjectRepo(db *gorm.DB) projectRepo {
+	return projectRepo{
+		db: db,
+	}
+}

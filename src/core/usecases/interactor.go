@@ -28,6 +28,15 @@ type JwtSignatureRepo interface {
 	CheckIfSignatureExists(signature string) bool
 }
 
+type ProjectRepo interface {
+}
+
+type EnvironmentRepo interface {
+}
+
+type ServiceRepo interface {
+}
+
 type Kubernetes interface {
 	GetNodes() ([]domain.Node, *e.Error)
 	GetNode(string) (*domain.Node, *e.Error)
@@ -65,17 +74,25 @@ type Kubernetes interface {
 }
 
 type interactor struct {
-	userRepo      UserRepo
-	userTokenRepo UserTokenRepo
-	jwtSignature  JwtSignatureRepo
-	kubernetes    Kubernetes
+	userRepo        UserRepo
+	userTokenRepo   UserTokenRepo
+	jwtSignature    JwtSignatureRepo
+	projectRepo     ProjectRepo
+	environmentRepo EnvironmentRepo
+	serviceRepo     ServiceRepo
+	kubernetes      Kubernetes
 }
 
-func NewInteractor(u UserRepo, ut UserTokenRepo, js JwtSignatureRepo, k8s Kubernetes) interactor {
+func NewInteractor(u UserRepo, ut UserTokenRepo, js JwtSignatureRepo,
+	repo ProjectRepo, env EnvironmentRepo, s ServiceRepo,
+	k8s Kubernetes) interactor {
 	return interactor{
-		userRepo:      u,
-		userTokenRepo: ut,
-		jwtSignature:  js,
-		kubernetes:    k8s,
+		userRepo:        u,
+		userTokenRepo:   ut,
+		jwtSignature:    js,
+		projectRepo:     repo,
+		environmentRepo: env,
+		serviceRepo:     s,
+		kubernetes:      k8s,
 	}
 }
