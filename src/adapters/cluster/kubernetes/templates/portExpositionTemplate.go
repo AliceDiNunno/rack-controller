@@ -3,7 +3,7 @@ package templates
 import (
 	"fmt"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes/utils"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/davecgh/go-spew/spew"
 	v13 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -11,7 +11,7 @@ import (
 	v15 "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-func ExecPortTemplate(namespace string, name string, portsToExpose []domain.Port) v16.ServiceApplyConfiguration {
+func ExecPortTemplate(namespace string, name string, portsToExpose []clusterDomain.Port) v16.ServiceApplyConfiguration {
 	apiVersion := "v1"
 	deploymentKind := "Service"
 	appNamespace := namespace

@@ -2,7 +2,7 @@ package postgres
 
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -21,7 +21,7 @@ type UserToken struct {
 	JwtSignature      []*JwtSignature
 }
 
-func (u userTokenRepo) CreateToken(token *domain.AccessToken) *e.Error {
+func (u userTokenRepo) CreateToken(token *userDomain.AccessToken) *e.Error {
 	userTokenToCreate := userTokenFromDomain(token)
 
 	result := u.db.Create(userTokenToCreate)
@@ -33,7 +33,7 @@ func (u userTokenRepo) CreateToken(token *domain.AccessToken) *e.Error {
 	return nil
 }
 
-func (u userTokenRepo) FindByToken(token string) (*domain.AccessToken, *e.Error) {
+func (u userTokenRepo) FindByToken(token string) (*userDomain.AccessToken, *e.Error) {
 	userToken := &UserToken{}
 
 	result := u.db.Joins("User").Preload("JwtSignature").Where("token = ?", token).First(userToken)
@@ -45,18 +45,18 @@ func (u userTokenRepo) FindByToken(token string) (*domain.AccessToken, *e.Error)
 	return userTokenToDomain(userToken), nil
 }
 
-func userTokenToDomain(userToken *UserToken) *domain.AccessToken {
+func userTokenToDomain(userToken *UserToken) *userDomain.AccessToken {
 	if userToken == nil {
 		return nil
 	}
 
-	var user *domain.User = nil
+	var user *userDomain.User = nil
 
 	if userToken.User != nil {
 		user = userToDomain(userToken.User)
 	}
 
-	return &domain.AccessToken{
+	return &userDomain.AccessToken{
 		CreatedAt:         userToken.CreatedAt,
 		ID:                userToken.ID,
 		Token:             userToken.Token,
@@ -66,7 +66,7 @@ func userTokenToDomain(userToken *UserToken) *domain.AccessToken {
 	}
 }
 
-func userTokenFromDomain(user *domain.AccessToken) *UserToken {
+func userTokenFromDomain(user *userDomain.AccessToken) *UserToken {
 	return &UserToken{
 		ID:                user.ID,
 		Token:             user.Token,

@@ -1,4 +1,4 @@
-package domain
+package clusterDomain
 
 type Ingress struct {
 	Name string `json:"name"`

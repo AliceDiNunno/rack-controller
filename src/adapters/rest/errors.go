@@ -12,6 +12,7 @@ import (
 var (
 	ErrFormValidation = errors.New("failed to validate form")
 	ErrNotFound       = errors.New("endpoint not found")
+	ErrUnauthorized   = errors.New("unauthorized")
 
 	ErrAuthorizationHeaderMissing = errors.New("authorization header missing")
 	ErrInvalidAuthorizationHeader = errors.New("invalid authorization header")
@@ -23,6 +24,8 @@ func codeForError(err error) int {
 		return http.StatusBadRequest
 	case ErrNotFound:
 		return http.StatusNotFound
+	case ErrUnauthorized:
+		return http.StatusUnauthorized
 	}
 	return http.StatusInternalServerError
 }

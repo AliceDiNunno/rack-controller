@@ -1,6 +1,7 @@
-package domain
+package userDomain
 
 import (
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"time"
@@ -13,7 +14,7 @@ type JwtTokenRequest struct {
 type JwtTokenPayload struct {
 	jwt.StandardClaims
 
-	UserID string `json:"userId"`
+	UserID uuid.UUID `json:"userId"`
 }
 
 func (j *JwtTokenPayload) Initialize() {
@@ -23,7 +24,7 @@ func (j *JwtTokenPayload) Initialize() {
 func (j JwtTokenPayload) Valid() error {
 	expiration := time.Unix(j.ExpiresAt, 0)
 	if expiration.Before(time.Now()) {
-		return ErrJwtTokenExpired
+		return clusterDomain.ErrJwtTokenExpired
 	}
 
 	return nil

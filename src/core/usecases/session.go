@@ -2,7 +2,8 @@ package usecases
 
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/AliceDiNunno/rack-controller/src/security/crypto"
 	"github.com/dgrijalva/jwt-go"
 	"os"
@@ -10,48 +11,48 @@ import (
 	"time"
 )
 
-func (i interactor) CreateAuthToken(request domain.AccessTokenRequest) (string, *e.Error) {
-	user, err := i.userRepo.FindByMail(request.Mail)
+func (i interactor) CreateAuthToken(request userDomain.AccessTokenRequest) (string, *e.Error) {
+	user, err := i.userRepository.GetUserByMail(request.Mail)
 	if err != nil {
-		return "", e.Wrap(domain.ErrUserNotFound)
+		return "", e.Wrap(clusterDomain.ErrUserNotFound)
 	}
 
 	samePassword, stderr := crypto.ComparePasswords(user.Password, request.Password)
 
 	if stderr != nil || samePassword == false {
-		return "", e.Wrap(stderr).Append(domain.ErrUserNotFound)
+		return "", e.Wrap(stderr).Append(clusterDomain.ErrUserNotFound)
 	}
 
-	token := &domain.AccessToken{
+	token := &userDomain.AccessToken{
 		User:              user,
 		IsPersonnalAccess: false,
 	}
 
 	token.Initialize()
 
-	err = i.userTokenRepo.CreateToken(token)
+	err = i.userTokenRepository.CreateToken(token)
 
 	if err != nil {
-		return "", err.Append(domain.ErrUserTokenCreation)
+		return "", err.Append(clusterDomain.ErrUserTokenCreation)
 	}
 
 	return token.Token, nil
 }
 
-func (i interactor) CreateJwtToken(request domain.JwtTokenRequest) (string, *e.Error) {
-	accessToken, err := i.userTokenRepo.FindByToken(request.UserAccessToken)
+func (i interactor) CreateJwtToken(request userDomain.JwtTokenRequest) (string, *e.Error) {
+	accessToken, err := i.userTokenRepository.FindByToken(request.UserAccessToken)
 
 	if err != nil {
-		return "", e.Wrap(domain.ErrUserTokenNotFound)
+		return "", e.Wrap(clusterDomain.ErrUserTokenNotFound)
 	}
 
 	if !accessToken.IsPersonnalAccess && len(accessToken.JwtGenerated) > 0 {
-		return "", e.Wrap(domain.ErrJwtTokenAlreadyConsumed)
+		return "", e.Wrap(clusterDomain.ErrJwtTokenAlreadyConsumed)
 	}
 
 	valid := accessToken.Valid()
 	if !valid {
-		return "", e.Wrap(domain.ErrUserTokenIsNotValid)
+		return "", e.Wrap(clusterDomain.ErrUserTokenIsNotValid)
 	}
 
 	hostname, stderr := os.Hostname()
@@ -67,7 +68,7 @@ func (i interactor) CreateJwtToken(request domain.JwtTokenRequest) (string, *e.E
 	}
 
 	issuingDate := time.Now()
-	payload := domain.JwtTokenPayload{
+	payload := userDomain.JwtTokenPayload{
 		StandardClaims: jwt.StandardClaims{
 			Audience:  "",
 			ExpiresAt: expirationDate.Unix(),
@@ -79,7 +80,7 @@ func (i interactor) CreateJwtToken(request domain.JwtTokenRequest) (string, *e.E
 			Subject:   accessToken.User.Mail,
 		},
 
-		UserID: accessToken.User.ID.String(),
+		UserID: accessToken.User.ID,
 	}
 
 	payload.Initialize()
@@ -89,49 +90,49 @@ func (i interactor) CreateJwtToken(request domain.JwtTokenRequest) (string, *e.E
 	signedToken, stderr := token.SignedString(mySigningKey)
 
 	if stderr != nil {
-		return "", e.Wrap(stderr).Append(domain.ErrUserTokenCreation)
+		return "", e.Wrap(stderr).Append(clusterDomain.ErrUserTokenCreation)
 	}
 
 	tkn := strings.Split(signedToken, ".")
 
-	signature := &domain.JwtSignature{
+	signature := &userDomain.JwtSignature{
 		IssuedAt:  issuingDate,
 		Token:     accessToken,
 		Signature: tkn[2],
 	}
 	signature.Initialize()
 
-	err = i.jwtSignature.SaveSignature(signature)
+	err = i.jwtSignatureRepository.SaveSignature(signature)
 
 	if err != nil {
-		return "", err.Append(domain.ErrUserTokenCreation)
+		return "", err.Append(clusterDomain.ErrUserTokenCreation)
 	}
 
 	return signedToken, nil
 }
 
-func (i interactor) CheckJwtToken(tokenStr string) (*domain.JwtTokenPayload, *e.Error) {
-	token, stderr := jwt.ParseWithClaims(tokenStr, &domain.JwtTokenPayload{}, func(token *jwt.Token) (interface{}, error) {
+func (i interactor) CheckJwtToken(tokenStr string) (*userDomain.JwtTokenPayload, *e.Error) {
+	token, stderr := jwt.ParseWithClaims(tokenStr, &userDomain.JwtTokenPayload{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("AllYourBase"), nil
 	})
 
 	if stderr != nil {
-		return nil, e.Wrap(domain.ErrJwtTokenCanNotBeParsed)
+		return nil, e.Wrap(clusterDomain.ErrJwtTokenCanNotBeParsed)
 	}
 
-	if !i.jwtSignature.CheckIfSignatureExists(token.Signature) {
-		return nil, e.Wrap(domain.ErrJwtTokenNotTrusted)
+	if !i.jwtSignatureRepository.CheckIfSignatureExists(token.Signature) {
+		return nil, e.Wrap(clusterDomain.ErrJwtTokenNotTrusted)
 	}
 
-	claims := token.Claims.(*domain.JwtTokenPayload)
+	claims := token.Claims.(*userDomain.JwtTokenPayload)
 
 	if claims == nil {
-		return nil, e.Wrap(domain.ErrJwtTokenClaimsInvalid)
+		return nil, e.Wrap(clusterDomain.ErrJwtTokenClaimsInvalid)
 	}
 
 	stderr = claims.Valid()
 	if stderr != nil {
-		return nil, e.Wrap(stderr).Append(domain.ErrJwtTokenInvalid)
+		return nil, e.Wrap(stderr).Append(clusterDomain.ErrJwtTokenInvalid)
 	}
 
 	return claims, nil

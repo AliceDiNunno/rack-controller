@@ -3,6 +3,9 @@ package usecases
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
+	"github.com/google/uuid"
 )
 
 type Logger interface {
@@ -12,87 +15,92 @@ type Logger interface {
 	Debug(args ...interface{})
 }
 
-type UserRepo interface {
+type UserRepository interface {
 	IsEmpty() bool
-	CreateUser(user *domain.User) *e.Error
-	FindByMail(mail string) (*domain.User, *e.Error)
+	CreateUser(user *userDomain.User) *e.Error
+	GetUserByMail(mail string) (*userDomain.User, *e.Error)
+	GetUserById(id uuid.UUID) (*userDomain.User, *e.Error)
 }
 
-type UserTokenRepo interface {
-	CreateToken(token *domain.AccessToken) *e.Error
-	FindByToken(token string) (*domain.AccessToken, *e.Error)
+type UserTokenRepository interface {
+	CreateToken(token *userDomain.AccessToken) *e.Error
+	FindByToken(token string) (*userDomain.AccessToken, *e.Error)
 }
 
-type JwtSignatureRepo interface {
-	SaveSignature(signature *domain.JwtSignature) *e.Error
+type JwtSignatureRepository interface {
+	SaveSignature(signature *userDomain.JwtSignature) *e.Error
 	CheckIfSignatureExists(signature string) bool
 }
 
-type ProjectRepo interface {
+type ProjectRepository interface {
+	GetProjectsByUserId(userId uuid.UUID) ([]domain.Project, *e.Error)
+	GetProjectByName(name string) (*domain.Project, *e.Error)
+	GetProjectByID(id uuid.UUID) (*domain.Project, *e.Error)
+	CreateProject(project domain.Project) *e.Error
 }
 
-type EnvironmentRepo interface {
+type EnvironmentRepository interface {
 }
 
-type ServiceRepo interface {
+type ServiceRepository interface {
 }
 
 type Kubernetes interface {
-	GetNodes() ([]domain.Node, *e.Error)
-	GetNode(string) (*domain.Node, *e.Error)
+	GetNodes() ([]clusterDomain.Node, *e.Error)
+	GetNode(string) (*clusterDomain.Node, *e.Error)
 
-	ListDeployments(namespace string) ([]domain.Deployment, *e.Error)
-	GetDeployment(namespace string, deploymentName string) (*domain.Deployment, *e.Error)
-	GetPodsOfADeployment(namespace string, deploymentName string) ([]domain.Pod, *e.Error)
-	GetEnvironmentOfADeployment(namespace string, deploymentName string) ([]domain.Environment, *e.Error)
-	GetPortsOfADeployment(namespace string, deploymentName string) ([]domain.Port, *e.Error)
+	ListDeployments(namespace string) ([]clusterDomain.Deployment, *e.Error)
+	GetDeployment(namespace string, deploymentName string) (*clusterDomain.Deployment, *e.Error)
+	GetPodsOfADeployment(namespace string, deploymentName string) ([]clusterDomain.Pod, *e.Error)
+	GetEnvironmentOfADeployment(namespace string, deploymentName string) ([]clusterDomain.Environment, *e.Error)
+	GetPortsOfADeployment(namespace string, deploymentName string) ([]clusterDomain.Port, *e.Error)
 	GetConfigMapsOfADeployment(namespace string, name string) ([]string, *e.Error)
 	GetSecretsOfADeployment(namespace string, name string) ([]string, *e.Error)
 	DeleteDeployment(namespace string, name string) *e.Error
 	RestartDeployment(namespace string, name string) *e.Error
-	CreateDeployment(namespace string, request domain.DeploymentCreationRequest) *e.Error
-	ExposePorts(namespace string, name string, ports []domain.Port) *e.Error
+	CreateDeployment(namespace string, request clusterDomain.DeploymentCreationRequest) *e.Error
+	ExposePorts(namespace string, name string, ports []clusterDomain.Port) *e.Error
 
-	GetPods(namespace string) ([]domain.Pod, *e.Error)
-	GetPod(namespace string, podName string) (*domain.Pod, *e.Error)
+	GetPods(namespace string) ([]clusterDomain.Pod, *e.Error)
+	GetPod(namespace string, podName string) (*clusterDomain.Pod, *e.Error)
 	GetPodLogs(namespace string, podName string) (string, *e.Error)
 	DeletePod(namespace string, podName string) *e.Error
 
 	GetNamespaces() ([]string, *e.Error)
 
 	GetConfigMapList(namespace string) ([]string, *e.Error)
-	GetConfigMap(namespace string, name string) (domain.ConfigMap, *e.Error)
-	CreateConfigMap(namespace string, request domain.ConfigMapCreationRequest) *e.Error
-	UpdateConfigMap(namespace string, name string, request domain.ConfigMapUpdateRequest) *e.Error
+	GetConfigMap(namespace string, name string) (clusterDomain.ConfigMap, *e.Error)
+	CreateConfigMap(namespace string, request clusterDomain.ConfigMapCreationRequest) *e.Error
+	UpdateConfigMap(namespace string, name string, request clusterDomain.ConfigMapUpdateRequest) *e.Error
 	DeleteConfigMap(namespace string, name string) *e.Error
 
 	GetSecretsList(namespace string) ([]string, *e.Error)
-	GetSecret(namespace string, name string) (domain.Secret, *e.Error)
-	CreateSecret(namespace string, request domain.SecretCreationRequest) *e.Error
-	UpdateSecret(namespace string, name string, request domain.SecretUpdateRequest) *e.Error
+	GetSecret(namespace string, name string) (clusterDomain.Secret, *e.Error)
+	CreateSecret(namespace string, request clusterDomain.SecretCreationRequest) *e.Error
+	UpdateSecret(namespace string, name string, request clusterDomain.SecretUpdateRequest) *e.Error
 	DeleteSecret(namespace string, name string) *e.Error
 }
 
 type interactor struct {
-	userRepo        UserRepo
-	userTokenRepo   UserTokenRepo
-	jwtSignature    JwtSignatureRepo
-	projectRepo     ProjectRepo
-	environmentRepo EnvironmentRepo
-	serviceRepo     ServiceRepo
-	kubernetes      Kubernetes
+	userRepository         UserRepository
+	userTokenRepository    UserTokenRepository
+	jwtSignatureRepository JwtSignatureRepository
+	projectRepository      ProjectRepository
+	environmentRepository  EnvironmentRepository
+	serviceRepository      ServiceRepository
+	kubernetes             Kubernetes
 }
 
-func NewInteractor(u UserRepo, ut UserTokenRepo, js JwtSignatureRepo,
-	repo ProjectRepo, env EnvironmentRepo, s ServiceRepo,
+func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
+	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository,
 	k8s Kubernetes) interactor {
 	return interactor{
-		userRepo:        u,
-		userTokenRepo:   ut,
-		jwtSignature:    js,
-		projectRepo:     repo,
-		environmentRepo: env,
-		serviceRepo:     s,
-		kubernetes:      k8s,
+		userRepository:         u,
+		userTokenRepository:    ut,
+		jwtSignatureRepository: js,
+		projectRepository:      repo,
+		environmentRepository:  env,
+		serviceRepository:      s,
+		kubernetes:             k8s,
 	}
 }

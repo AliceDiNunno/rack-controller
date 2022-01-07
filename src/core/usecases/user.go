@@ -3,18 +3,29 @@ package usecases
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/config"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/AliceDiNunno/rack-controller/src/security/crypto"
+	"github.com/google/uuid"
 )
 
-func (i interactor) CreateUser(user *domain.UserCreationRequest) *e.Error {
+func (i interactor) GetUserById(id uuid.UUID) (*userDomain.User, *e.Error) {
+	user, err := i.userRepository.GetUserById(id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (i interactor) CreateUser(user *userDomain.UserCreationRequest) *e.Error {
+	//TODO create initial user should call this function
 	panic("implement me")
 }
 
 func (i interactor) CreateInitialUser(initialUser *config.InitialUserConfig) *e.Error {
 	//TODO: check if there are no admins instead of just checking if there are no users
-	if !i.userRepo.IsEmpty() {
-		return e.Wrap(domain.ErrCannotCreateInitialUserIfUserTableNotEmpty)
+	if !i.userRepository.IsEmpty() {
+		return e.Wrap(clusterDomain.ErrCannotCreateInitialUserIfUserTableNotEmpty)
 	}
 
 	hash, stderr := crypto.HashAndSalt(initialUser.Password)
@@ -23,14 +34,14 @@ func (i interactor) CreateInitialUser(initialUser *config.InitialUserConfig) *e.
 		return e.Wrap(stderr)
 	}
 
-	userToCreate := &domain.User{
+	userToCreate := &userDomain.User{
 		Mail:     initialUser.Mail,
 		Password: hash,
 	}
 
 	userToCreate.Initialize()
 
-	err := i.userRepo.CreateUser(userToCreate)
+	err := i.userRepository.CreateUser(userToCreate)
 
 	if err != nil {
 		return err
@@ -42,7 +53,7 @@ func (i interactor) CreateInitialUser(initialUser *config.InitialUserConfig) *e.
 		return e.Wrap(stderr)
 	}
 
-	tokenToCreate := &domain.AccessToken{
+	tokenToCreate := &userDomain.AccessToken{
 		User:              userToCreate,
 		Token:             hashedToken,
 		IsPersonnalAccess: true,
@@ -50,7 +61,7 @@ func (i interactor) CreateInitialUser(initialUser *config.InitialUserConfig) *e.
 
 	tokenToCreate.Initialize()
 
-	err = i.userTokenRepo.CreateToken(tokenToCreate)
+	err = i.userTokenRepository.CreateToken(tokenToCreate)
 
 	if err != nil {
 		return err

@@ -2,7 +2,7 @@ package postgres
 
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"gorm.io/gorm"
 )
 import "github.com/google/uuid"
@@ -27,7 +27,7 @@ func (u userRepo) IsEmpty() bool {
 	return count == 0
 }
 
-func (u userRepo) CreateUser(user *domain.User) *e.Error {
+func (u userRepo) CreateUser(user *userDomain.User) *e.Error {
 	userToCreate := userFromDomain(user)
 
 	result := u.db.Create(userToCreate)
@@ -39,7 +39,7 @@ func (u userRepo) CreateUser(user *domain.User) *e.Error {
 	return nil
 }
 
-func (u userRepo) FindByMail(mail string) (*domain.User, *e.Error) {
+func (u userRepo) GetUserByMail(mail string) (*userDomain.User, *e.Error) {
 	var user User
 
 	result := u.db.Where("mail = ?", mail).First(&user)
@@ -51,18 +51,30 @@ func (u userRepo) FindByMail(mail string) (*domain.User, *e.Error) {
 	return userToDomain(&user), nil
 }
 
-func userToDomain(user *User) *domain.User {
+func (u userRepo) GetUserById(id uuid.UUID) (*userDomain.User, *e.Error) {
+	var user User
+
+	result := u.db.Where("id = ?", id).First(&user)
+
+	if result.Error != nil {
+		return nil, e.Wrap(result.Error)
+	}
+
+	return userToDomain(&user), nil
+}
+
+func userToDomain(user *User) *userDomain.User {
 	if user == nil {
 		return nil
 	}
-	return &domain.User{
+	return &userDomain.User{
 		ID:       user.ID,
 		Mail:     user.Mail,
 		Password: user.Password,
 	}
 }
 
-func userFromDomain(user *domain.User) *User {
+func userFromDomain(user *userDomain.User) *User {
 	if user == nil {
 		return nil
 	}

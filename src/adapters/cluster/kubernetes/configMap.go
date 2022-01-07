@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"context"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -24,29 +24,29 @@ func (k8s kubernetesInstance) GetConfigMapList(namespace string) ([]string, *e.E
 	return mapList, nil
 }
 
-func (k8s kubernetesInstance) GetConfigMap(namespace string, name string) (domain.ConfigMap, *e.Error) {
+func (k8s kubernetesInstance) GetConfigMap(namespace string, name string) (clusterDomain.ConfigMap, *e.Error) {
 	data, err := k8s.Client.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, v1.GetOptions{})
 
 	if err != nil {
-		return domain.ConfigMap{}, e.Wrap(err).Append(ErrConfigMapNotFound)
+		return clusterDomain.ConfigMap{}, e.Wrap(err).Append(ErrConfigMapNotFound)
 	}
 
-	var env = []domain.Environment{}
+	var env = []clusterDomain.Environment{}
 
 	for envKey, envValue := range data.Data {
-		env = append(env, domain.Environment{
+		env = append(env, clusterDomain.Environment{
 			Name:  envKey,
 			Value: envValue,
 		})
 	}
 
-	return domain.ConfigMap{
+	return clusterDomain.ConfigMap{
 		Name:    data.Name,
 		Content: env,
 	}, nil
 }
 
-func (k8s kubernetesInstance) CreateConfigMap(namespace string, request domain.ConfigMapCreationRequest) *e.Error {
+func (k8s kubernetesInstance) CreateConfigMap(namespace string, request clusterDomain.ConfigMapCreationRequest) *e.Error {
 	data := v12.ConfigMap{
 		ObjectMeta: v1.ObjectMeta{
 			Name: request.Name,
@@ -72,7 +72,7 @@ func (k8s kubernetesInstance) DeleteConfigMap(namespace string, name string) *e.
 	return nil
 }
 
-func (k8s kubernetesInstance) UpdateConfigMap(namespace string, name string, request domain.ConfigMapUpdateRequest) *e.Error {
+func (k8s kubernetesInstance) UpdateConfigMap(namespace string, name string, request clusterDomain.ConfigMapUpdateRequest) *e.Error {
 	data, err := k8s.Client.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, v1.GetOptions{})
 
 	if err != nil {

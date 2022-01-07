@@ -1,4 +1,4 @@
-package domain
+package clusterDomain
 
 type Secret struct {
 	Name    string

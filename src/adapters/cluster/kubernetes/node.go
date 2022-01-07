@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"context"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -18,7 +18,7 @@ func (k8s kubernetesInstance) GetDebugNodes() ([]corev1.Node, *e.Error) {
 	return pods.Items, nil
 }
 
-func (k8s kubernetesInstance) GetNodes() ([]domain.Node, *e.Error) {
+func (k8s kubernetesInstance) GetNodes() ([]clusterDomain.Node, *e.Error) {
 	nodes, err := k8s.Client.CoreV1().Nodes().List(context.Background(), v1.ListOptions{})
 
 	if err != nil {
@@ -38,7 +38,7 @@ func (k8s kubernetesInstance) getNode(name string) (*corev1.Node, *e.Error) {
 	return node, nil
 }
 
-func (k8s kubernetesInstance) GetNode(name string) (*domain.Node, *e.Error) {
+func (k8s kubernetesInstance) GetNode(name string) (*clusterDomain.Node, *e.Error) {
 	foundNode, err := k8s.getNode(name)
 
 	if err != nil {
@@ -50,8 +50,8 @@ func (k8s kubernetesInstance) GetNode(name string) (*domain.Node, *e.Error) {
 	return node, nil
 }
 
-func nodesToDomain(nodes []corev1.Node) []domain.Node {
-	var nodeList []domain.Node
+func nodesToDomain(nodes []corev1.Node) []clusterDomain.Node {
+	var nodeList []clusterDomain.Node
 
 	for _, node := range nodes {
 		domainNode := nodeToDomain(&node)
@@ -63,22 +63,22 @@ func nodesToDomain(nodes []corev1.Node) []domain.Node {
 	return nodeList
 }
 
-func nodeToDomain(node *corev1.Node) *domain.Node {
+func nodeToDomain(node *corev1.Node) *clusterDomain.Node {
 	if node == nil {
 		return nil
 	}
 
-	var taints = []domain.NodeTaint{}
+	var taints = []clusterDomain.NodeTaint{}
 
 	for _, taint := range node.Spec.Taints {
-		taints = append(taints, domain.NodeTaint{
+		taints = append(taints, clusterDomain.NodeTaint{
 			Key:    taint.Key,
 			Effect: string(taint.Effect),
 			Since:  taint.TimeAdded.Time,
 		})
 	}
 
-	condition := domain.NodeCondition{
+	condition := clusterDomain.NodeCondition{
 		NetworkUnavailable: false,
 		DiskPressure:       false,
 		PidPressure:        false,
@@ -101,22 +101,22 @@ func nodeToDomain(node *corev1.Node) *domain.Node {
 		}
 	}
 
-	return &domain.Node{
+	return &clusterDomain.Node{
 		Id:           string(node.UID),
 		Name:         node.Name,
 		CreationDate: node.CreationTimestamp.Time,
 		Ip:           node.Status.Addresses[0].Address,
-		Hardware: domain.NodeHardware{
+		Hardware: clusterDomain.NodeHardware{
 			Cores:   node.Status.Capacity.Cpu().Value(),
 			Storage: node.Status.Capacity.Storage().Value(),
 			Memory:  node.Status.Capacity.Memory().Value(),
 		},
-		AvailableHardware: domain.NodeHardware{
+		AvailableHardware: clusterDomain.NodeHardware{
 			Cores:   node.Status.Allocatable.Cpu().Value(),
 			Storage: node.Status.Allocatable.Storage().Value(),
 			Memory:  node.Status.Allocatable.Memory().Value(),
 		},
-		OperatingSystem: domain.NodeOperatingSystem{
+		OperatingSystem: clusterDomain.NodeOperatingSystem{
 			OSType:         node.Status.NodeInfo.OperatingSystem,
 			OSName:         node.Status.NodeInfo.OSImage,
 			OSArchitecture: node.Status.NodeInfo.Architecture,

@@ -1,9 +1,20 @@
 package rest
 
-import "github.com/gin-gonic/gin"
+import (
+	e "github.com/AliceDiNunno/go-nested-traced-error"
+	"github.com/gin-gonic/gin"
+)
 
+//TODO: separate user and profile
 func (rH RoutesHandler) getProfileHandler(context *gin.Context) {
-	//TODO: implement
+	user := rH.getAuthenticatedUser(context)
+
+	if user == nil {
+		rH.handleError(context, e.Wrap(ErrUnauthorized))
+		return
+	}
+
+	context.JSON(200, success(user))
 }
 
 func (rH RoutesHandler) getRolesHandler(context *gin.Context) {

@@ -2,7 +2,7 @@ package postgres
 
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
@@ -21,7 +21,7 @@ type JwtSignature struct {
 	IssuedAt    time.Time
 }
 
-func (j jwtSignatureRepo) SaveSignature(signature *domain.JwtSignature) *e.Error {
+func (j jwtSignatureRepo) SaveSignature(signature *userDomain.JwtSignature) *e.Error {
 	jwtSignature := jwtSignatureFromDomain(signature)
 	if err := j.db.Create(&jwtSignature).Error; err != nil {
 		return e.Wrap(err)
@@ -37,8 +37,8 @@ func (j jwtSignatureRepo) CheckIfSignatureExists(signatureStr string) bool {
 	return true
 }
 
-func jwtSignaturesToDomain(signature []*JwtSignature) []*domain.JwtSignature {
-	var signaturesSlice []*domain.JwtSignature
+func jwtSignaturesToDomain(signature []*JwtSignature) []*userDomain.JwtSignature {
+	signaturesSlice := []*userDomain.JwtSignature{}
 
 	for _, s := range signature {
 		signaturesSlice = append(signaturesSlice, jwtSignatureToDomain(s))
@@ -47,11 +47,11 @@ func jwtSignaturesToDomain(signature []*JwtSignature) []*domain.JwtSignature {
 	return signaturesSlice
 }
 
-func jwtSignatureToDomain(signature *JwtSignature) *domain.JwtSignature {
+func jwtSignatureToDomain(signature *JwtSignature) *userDomain.JwtSignature {
 	if signature == nil {
 		return nil
 	}
-	return &domain.JwtSignature{
+	return &userDomain.JwtSignature{
 		ID:        signature.ID,
 		Signature: signature.Signature,
 		Token:     userTokenToDomain(signature.UserToken),
@@ -59,7 +59,7 @@ func jwtSignatureToDomain(signature *JwtSignature) *domain.JwtSignature {
 	}
 }
 
-func jwtSignatureFromDomain(signature *domain.JwtSignature) *JwtSignature {
+func jwtSignatureFromDomain(signature *userDomain.JwtSignature) *JwtSignature {
 	if signature == nil {
 		return nil
 	}

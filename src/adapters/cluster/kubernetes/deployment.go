@@ -5,7 +5,7 @@ import (
 	"fmt"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes/templates"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/davecgh/go-spew/spew"
 	appsv1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (k8s kubernetesInstance) ListDeployments(namespace string) ([]domain.Deployment, *e.Error) {
+func (k8s kubernetesInstance) ListDeployments(namespace string) ([]clusterDomain.Deployment, *e.Error) {
 	deployment, err := k8s.Client.AppsV1().Deployments(namespace).List(context.Background(), v12.ListOptions{})
 
 	if err != nil {
@@ -33,7 +33,7 @@ func (k8s kubernetesInstance) getDeployment(namespace string, name string) (*app
 	return deployment, nil
 }
 
-func (k8s kubernetesInstance) GetDeployment(namespace string, name string) (*domain.Deployment, *e.Error) {
+func (k8s kubernetesInstance) GetDeployment(namespace string, name string) (*clusterDomain.Deployment, *e.Error) {
 	foundDeployment, err := k8s.getDeployment(namespace, name)
 
 	if err != nil {
@@ -102,7 +102,7 @@ func (k8s kubernetesInstance) RestartDeployment(namespace string, name string) *
 	return nil
 }
 
-func (k8s kubernetesInstance) GetEnvironmentOfADeployment(namespace string, name string) ([]domain.Environment, *e.Error) {
+func (k8s kubernetesInstance) GetEnvironmentOfADeployment(namespace string, name string) ([]clusterDomain.Environment, *e.Error) {
 	deployments, err := k8s.getDeployment(namespace, name)
 
 	if err != nil {
@@ -117,10 +117,10 @@ func (k8s kubernetesInstance) GetEnvironmentOfADeployment(namespace string, name
 
 	env := containers[0].Env
 
-	var envToReturn = []domain.Environment{}
+	var envToReturn = []clusterDomain.Environment{}
 
 	for _, envEntry := range env {
-		newValue := domain.Environment{
+		newValue := clusterDomain.Environment{
 			Name:  envEntry.Name,
 			Value: envEntry.Value,
 		}
@@ -131,7 +131,7 @@ func (k8s kubernetesInstance) GetEnvironmentOfADeployment(namespace string, name
 	return envToReturn, nil
 }
 
-func (k8s kubernetesInstance) GetPortsOfADeployment(namespace string, name string) ([]domain.Port, *e.Error) {
+func (k8s kubernetesInstance) GetPortsOfADeployment(namespace string, name string) ([]clusterDomain.Port, *e.Error) {
 	deployments, err := k8s.getDeployment(namespace, name)
 
 	if err != nil {
@@ -146,11 +146,11 @@ func (k8s kubernetesInstance) GetPortsOfADeployment(namespace string, name strin
 
 	ports := containers[0].Ports
 
-	var portsToReturn = []domain.Port{}
+	var portsToReturn = []clusterDomain.Port{}
 
 	service, err := k8s.getExposedPorts(namespace, fmt.Sprintf("%s", name))
 	for _, portEntry := range ports {
-		newValue := domain.Port{
+		newValue := clusterDomain.Port{
 			Name:            portEntry.Name,
 			NetworkProtocol: string(portEntry.Protocol),
 			ServicePort:     portEntry.ContainerPort,
@@ -240,7 +240,7 @@ func (k8s kubernetesInstance) handleDeployment(namespace string, data interface{
 	return nil
 }
 
-func (k8s kubernetesInstance) CreateDeployment(namespace string, request domain.DeploymentCreationRequest) *e.Error {
+func (k8s kubernetesInstance) CreateDeployment(namespace string, request clusterDomain.DeploymentCreationRequest) *e.Error {
 	for _, template := range templates.AvailableTemplates() {
 		if template.Id == request.TemplateId {
 			template := template.Exec(namespace, request)
@@ -256,8 +256,8 @@ func (k8s kubernetesInstance) CreateDeployment(namespace string, request domain.
 	return nil
 }
 
-func deploymentsToDomain(deployments []appsv1.Deployment) []domain.Deployment {
-	var deploymentList []domain.Deployment
+func deploymentsToDomain(deployments []appsv1.Deployment) []clusterDomain.Deployment {
+	var deploymentList []clusterDomain.Deployment
 
 	for _, deployment := range deployments {
 		domainDeployment := deploymentToDomain(&deployment)
@@ -269,7 +269,7 @@ func deploymentsToDomain(deployments []appsv1.Deployment) []domain.Deployment {
 	return deploymentList
 }
 
-func deploymentToDomain(deployment *appsv1.Deployment) *domain.Deployment {
+func deploymentToDomain(deployment *appsv1.Deployment) *clusterDomain.Deployment {
 	if deployment == nil {
 		return nil
 	}
@@ -282,7 +282,7 @@ func deploymentToDomain(deployment *appsv1.Deployment) *domain.Deployment {
 
 	pod := deployment.Spec.Template.Spec.Containers[0]
 
-	var probe *domain.ContainerProbe
+	var probe *clusterDomain.ContainerProbe
 
 	/*
 		if pod.ReadinessProbe != nil {
@@ -293,7 +293,7 @@ func deploymentToDomain(deployment *appsv1.Deployment) *domain.Deployment {
 			}
 		}*/
 
-	condition := domain.DeploymentCondition{}
+	condition := clusterDomain.DeploymentCondition{}
 
 	for _, currentCondition := range deployment.Status.Conditions {
 		if currentCondition.Type == "Available" {
@@ -304,7 +304,7 @@ func deploymentToDomain(deployment *appsv1.Deployment) *domain.Deployment {
 		}
 	}
 
-	return &domain.Deployment{
+	return &clusterDomain.Deployment{
 		Id:                string(deployment.UID),
 		Name:              deployment.Name,
 		ImageName:         deployment.Spec.Template.Spec.Containers[0].Image,
@@ -314,9 +314,9 @@ func deploymentToDomain(deployment *appsv1.Deployment) *domain.Deployment {
 		UpdatedReplicas:   int64(deployment.Status.UpdatedReplicas),
 		AvailableReplicas: int64(deployment.Status.AvailableReplicas),
 		ReadyReplicas:     int64(deployment.Status.ReadyReplicas),
-		Container: domain.Container{
+		Container: clusterDomain.Container{
 			Name: pod.Name,
-			Image: domain.ContainerImage{
+			Image: clusterDomain.ContainerImage{
 				Name:  pod.Name,
 				Image: pod.Image,
 			},

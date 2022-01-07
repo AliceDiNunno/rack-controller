@@ -3,12 +3,12 @@ package kubernetes
 import (
 	"context"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k8s kubernetesInstance) GetPods(namespace string) ([]domain.Pod, *e.Error) {
+func (k8s kubernetesInstance) GetPods(namespace string) ([]clusterDomain.Pod, *e.Error) {
 	pods, err := k8s.Client.CoreV1().Pods(namespace).List(context.Background(), v1.ListOptions{})
 
 	if err != nil {
@@ -32,7 +32,7 @@ func (k8s kubernetesInstance) getPod(namespace string, name string) (*corev1.Pod
 	return pod, nil
 }
 
-func (k8s kubernetesInstance) GetPod(namespace string, name string) (*domain.Pod, *e.Error) {
+func (k8s kubernetesInstance) GetPod(namespace string, name string) (*clusterDomain.Pod, *e.Error) {
 	foundPod, err := k8s.getPod(namespace, name)
 
 	if err != nil {
@@ -54,7 +54,7 @@ func (k8s kubernetesInstance) GetDebugPods(namespace string) ([]corev1.Pod, *e.E
 	return pods.Items, nil
 }
 
-func (k8s kubernetesInstance) GetPodsOfADeployment(namespace string, deployment string) ([]domain.Pod, *e.Error) {
+func (k8s kubernetesInstance) GetPodsOfADeployment(namespace string, deployment string) ([]clusterDomain.Pod, *e.Error) {
 	pods, err := k8s.Client.CoreV1().Pods(namespace).List(context.Background(), v1.ListOptions{LabelSelector: "app = " + deployment})
 
 	if err != nil {
@@ -74,8 +74,8 @@ func (k8s kubernetesInstance) DeletePod(namespace string, podName string) *e.Err
 	return nil
 }
 
-func podsToDomain(pods []corev1.Pod) []domain.Pod {
-	var podList []domain.Pod
+func podsToDomain(pods []corev1.Pod) []clusterDomain.Pod {
+	var podList []clusterDomain.Pod
 
 	for _, pod := range pods {
 		domainPod := podToDomain(&pod)
@@ -87,12 +87,12 @@ func podsToDomain(pods []corev1.Pod) []domain.Pod {
 	return podList
 }
 
-func podToDomain(pod *corev1.Pod) *domain.Pod {
+func podToDomain(pod *corev1.Pod) *clusterDomain.Pod {
 	if pod == nil {
 		return nil
 	}
 
-	var readyProbe *domain.PodProbe = nil
+	var readyProbe *clusterDomain.PodProbe = nil
 
 	/*	if pod.Spec.Containers[0].ReadinessProbe != nil {
 		readyProbe = &domain.PodProbe{
@@ -107,7 +107,7 @@ func podToDomain(pod *corev1.Pod) *domain.Pod {
 		status = "Terminating"
 	}
 
-	var podConditions = domain.PodCondition{
+	var podConditions = clusterDomain.PodCondition{
 		Initialized:     false,
 		Ready:           false,
 		ContainersReady: false,
@@ -134,12 +134,12 @@ func podToDomain(pod *corev1.Pod) *domain.Pod {
 		restartCount = int(pod.Status.ContainerStatuses[0].RestartCount)
 	}
 
-	return &domain.Pod{
+	return &clusterDomain.Pod{
 		Id:           string(pod.UID),
 		Name:         pod.Name,
 		CreationDate: pod.CreationTimestamp.Time,
 		Status:       string(status),
-		Image: domain.PodImage{
+		Image: clusterDomain.PodImage{
 			Name:  pod.Spec.Containers[0].Name,
 			Image: pod.Spec.Containers[0].Image,
 		},

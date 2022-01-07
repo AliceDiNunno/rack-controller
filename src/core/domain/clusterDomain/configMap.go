@@ -1,4 +1,4 @@
-package domain
+package clusterDomain
 
 type ConfigMap struct {
 	Name    string

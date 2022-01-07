@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"context"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -22,29 +22,29 @@ func (k8s kubernetesInstance) GetSecretsList(namespace string) ([]string, *e.Err
 	return secretNames, nil
 }
 
-func (k8s kubernetesInstance) GetSecret(namespace string, name string) (domain.Secret, *e.Error) {
+func (k8s kubernetesInstance) GetSecret(namespace string, name string) (clusterDomain.Secret, *e.Error) {
 	data, err := k8s.Client.CoreV1().Secrets(namespace).Get(context.Background(), name, v1.GetOptions{})
 
 	if err != nil {
-		return domain.Secret{}, e.Wrap(err).Append(ErrSecretNotFound)
+		return clusterDomain.Secret{}, e.Wrap(err).Append(ErrSecretNotFound)
 	}
 
-	var env = []domain.Environment{}
+	var env = []clusterDomain.Environment{}
 
 	for envKey, envValue := range data.Data {
-		env = append(env, domain.Environment{
+		env = append(env, clusterDomain.Environment{
 			Name:  envKey,
 			Value: string(envValue),
 		})
 	}
 
-	return domain.Secret{
+	return clusterDomain.Secret{
 		Name:    data.Name,
 		Content: env,
 	}, nil
 }
 
-func (k8s kubernetesInstance) CreateSecret(namespace string, request domain.SecretCreationRequest) *e.Error {
+func (k8s kubernetesInstance) CreateSecret(namespace string, request clusterDomain.SecretCreationRequest) *e.Error {
 	secret := &v12.Secret{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      request.Name,
@@ -69,7 +69,7 @@ func (k8s kubernetesInstance) DeleteSecret(namespace string, name string) *e.Err
 	return nil
 }
 
-func (k8s kubernetesInstance) UpdateSecret(namespace string, name string, request domain.SecretUpdateRequest) *e.Error {
+func (k8s kubernetesInstance) UpdateSecret(namespace string, name string, request clusterDomain.SecretUpdateRequest) *e.Error {
 	secret, err := k8s.Client.CoreV1().Secrets(namespace).Get(context.Background(), name, v1.GetOptions{})
 	if err != nil {
 		return e.Wrap(err).Append(ErrSecretNotFound)

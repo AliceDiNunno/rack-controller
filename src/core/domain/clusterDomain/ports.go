@@ -1,4 +1,4 @@
-package domain
+package clusterDomain
 
 type Port struct {
 	Name            string

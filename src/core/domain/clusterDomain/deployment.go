@@ -1,6 +1,8 @@
-package domain
+package clusterDomain
 
-import "time"
+import (
+	"time"
+)
 
 type DeploymentDiscoveredEndpoint struct {
 	Ip   string

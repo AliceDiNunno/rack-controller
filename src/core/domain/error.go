@@ -3,15 +3,13 @@ package domain
 import "errors"
 
 var (
-	ErrCannotCreateInitialUserIfUserTableNotEmpty = errors.New("cannot create initial user if user table is not empty")
-	ErrUserNotFound                               = errors.New("user not found")
-	ErrUserTokenCreation                          = errors.New("error creating user token")
-	ErrUserTokenIsNotValid                        = errors.New("user token is not valid")
-	ErrUserTokenNotFound                          = errors.New("user token not found")
-	ErrJwtTokenExpired                            = errors.New("token expired")
-	ErrJwtTokenAlreadyConsumed                    = errors.New("token already consumed")
-	ErrJwtTokenInvalid                            = errors.New("jwt token invalid")
-	ErrJwtTokenCanNotBeParsed                     = errors.New("jwt token can not be parsed")
-	ErrJwtTokenClaimsInvalid                      = errors.New("jwt token claims invalid")
-	ErrJwtTokenNotTrusted                         = errors.New("jwt token not trusted")
+	ErrUserIsNil   = errors.New("user is nil")
+	ErrIdCantBeNil = errors.New("id can't be nil")
+
+	ErrUnableToGetProjects              = errors.New("unable to get projects")
+	ErrProjectNameIsEmpty               = errors.New("project name is empty")
+	ErrProjectNotFound                  = errors.New("project not found")
+	ErrProjectWithSameNameAlreadyExists = errors.New("project with same name already exists")
+	ErrUserNotOwnerOfProject            = errors.New("user not owner of project")
+	ErrUnableToCreateProject            = errors.New("unable to create project")
 )

@@ -1,4 +1,4 @@
-package domain
+package userDomain
 
 import (
 	"bytes"
@@ -24,25 +24,20 @@ type AccessToken struct {
 
 func (t *AccessToken) Valid() bool {
 	if t == nil {
-		println("UserToken Nil")
 		return false
 	}
 
 	if t.IsPersonnalAccess {
-		println("UserToken is personnal")
 		return true
 	}
 
 	if time.Now().Before(t.CreatedAt) {
-		println("UserToken is created before now")
 		return false
 	}
 
 	if t.CreatedAt.Add(time.Minute * 30).Before(time.Now()) {
-		println("UserToken is expired")
 		return false
 	}
-	println("UserToken is valid")
 	return true
 }
 

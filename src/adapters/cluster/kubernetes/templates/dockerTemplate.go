@@ -2,7 +2,7 @@ package templates
 
 import (
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes/utils"
-	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/davecgh/go-spew/spew"
 	corev1 "k8s.io/api/core/v1"
 	appsv1Apply "k8s.io/client-go/applyconfigurations/apps/v1"
@@ -10,7 +10,7 @@ import (
 	metav1Apply "k8s.io/client-go/applyconfigurations/meta/v1"
 )
 
-func ExecBasicContainerTemplate(namespace string, request domain.DeploymentCreationRequest) interface{} {
+func ExecBasicContainerTemplate(namespace string, request clusterDomain.DeploymentCreationRequest) interface{} {
 	apiVersion := "apps/v1"
 	deploymentKind := "Deployment"
 	appNamespace := namespace

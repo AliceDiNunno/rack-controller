@@ -4,6 +4,8 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/response"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -12,18 +14,39 @@ func (rH RoutesHandler) verifyAuthenticationMiddleware(c *gin.Context) {
 	authorizationHeader := c.GetHeader("Authorization")
 
 	if authorizationHeader == "" {
-		rH.handleError(c, e.Wrap(ErrAuthorizationHeaderMissing))
+		rH.handleError(c, e.Wrap(ErrAuthorizationHeaderMissing).Append(ErrUnauthorized))
 		return
 	}
 
 	payload, err := rH.usecases.CheckJwtToken(authorizationHeader)
 
 	if err != nil {
-		rH.handleError(c, err.Append(ErrInvalidAuthorizationHeader))
+		rH.handleError(c, err.Append(ErrInvalidAuthorizationHeader).Append(ErrUnauthorized))
 		return
 	}
 
-	c.Set("userID", payload.UserID)
+	user, err := rH.usecases.GetUserById(payload.UserID)
+
+	if err != nil {
+		rH.handleError(c, err.Append(clusterDomain.ErrUserNotFound).Append(ErrUnauthorized))
+		return
+	}
+
+	c.Set("user", user)
+}
+
+//if verifyAuthenticationMiddleware is a root middleware there is no reason than userDomain.user is empty at this point
+//We will assume verifyAuthenticationMiddleware is a root middleware
+func (rH RoutesHandler) getAuthenticatedUser(c *gin.Context) *userDomain.User {
+	auth, exists := c.Get("user")
+
+	if !exists {
+		return nil
+	}
+
+	authenticatedUser := auth.(*userDomain.User)
+
+	return authenticatedUser
 }
 
 func (rH RoutesHandler) createAuthTokenHandler(c *gin.Context) {

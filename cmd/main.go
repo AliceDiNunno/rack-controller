@@ -23,12 +23,12 @@ func main() {
 	initialUserConfiguration := config.LoadInitialUserConfiguration()
 	clusterConfig := config.LoadClusterConfig()
 
-	var userRepo usecases.UserRepo
-	var tokenRepo usecases.UserTokenRepo
-	var jwtSignatureRepo usecases.JwtSignatureRepo
-	var projectRepo usecases.ProjectRepo
-	var environmentRepo usecases.EnvironmentRepo
-	var serviceRepo usecases.ServiceRepo
+	var userRepo usecases.UserRepository
+	var tokenRepo usecases.UserTokenRepository
+	var jwtSignatureRepo usecases.JwtSignatureRepository
+	var projectRepo usecases.ProjectRepository
+	var environmentRepo usecases.EnvironmentRepository
+	var serviceRepo usecases.ServiceRepository
 
 	kubernetesInstance, err := kubernetes.LoadInstance(clusterConfig)
 
