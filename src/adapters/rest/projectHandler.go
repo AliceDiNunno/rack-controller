@@ -31,6 +31,18 @@ func (rH RoutesHandler) getProjectMiddleware(context *gin.Context) {
 	context.Set("project", project)
 }
 
+func (rH RoutesHandler) getProject(c *gin.Context) *domain.Project {
+	auth, exists := c.Get("project")
+
+	if !exists {
+		return nil
+	}
+
+	project := auth.(*domain.Project)
+
+	return project
+}
+
 func (rH RoutesHandler) getProjectsHandler(context *gin.Context) {
 	user := rH.getAuthenticatedUser(context)
 
@@ -46,7 +58,7 @@ func (rH RoutesHandler) getProjectsHandler(context *gin.Context) {
 		return
 	}
 
-	context.JSON(200, projects)
+	context.JSON(200, success(projects))
 }
 
 func (rH RoutesHandler) createProjectHandler(context *gin.Context) {
@@ -71,11 +83,17 @@ func (rH RoutesHandler) createProjectHandler(context *gin.Context) {
 		return
 	}
 
-	context.JSON(201, project)
+	context.JSON(201, success(project))
 }
 
 func (rH RoutesHandler) getProjectHandler(context *gin.Context) {
+	project := rH.getProject(context)
 
+	if project == nil {
+		return
+	}
+
+	context.JSON(200, success(project))
 }
 
 func (rH RoutesHandler) updateProjectHandler(context *gin.Context) {

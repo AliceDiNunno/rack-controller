@@ -40,7 +40,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	environmentEndpoint := selectedProjectEndpoint.Group("/environments")
 	environmentEndpoint.GET("", routesHandler.getEnvironmentsHandler)
 	environmentEndpoint.POST("", routesHandler.createEnvironmentHandler)
-	environmentEndpoint.Group("/:environment_id", routesHandler.getProjectEnvironmentMiddleware).
+	environmentEndpoint.Group("/:environment_id", routesHandler.getProjectEnvironmentsMiddleware).
 		DELETE("", routesHandler.deleteEnvironmentHandler)
 
 	serviceEndpoint := selectedProjectEndpoint.Group("/services")
@@ -52,7 +52,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceEndpoint.PUT("", routesHandler.updateServiceHandler)
 	selectedServiceEndpoint.DELETE("", routesHandler.deleteServiceHandler)
 
-	serviceSelectedEnvironmentEndpoint := selectedServiceEndpoint.Group("/environment/:environment_id", routesHandler.getProjectEnvironmentMiddleware)
+	serviceSelectedEnvironmentEndpoint := selectedServiceEndpoint.Group("/environment/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
 	serviceSelectedEnvironmentEndpoint.GET("", routesHandler.getServiceOfEnvironmentHandler)
 
 	serviceInstanceEndpoint := selectedServiceEndpoint.Group("/instances")

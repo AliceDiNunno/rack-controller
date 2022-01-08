@@ -88,6 +88,7 @@ func projectToDomain(project Project) domain.Project {
 	return domain.Project{
 		ID:          project.ID,
 		DisplayName: project.DisplayName,
+		UserID:      project.UserID,
 	}
 }
 
