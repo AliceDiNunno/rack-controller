@@ -23,5 +23,6 @@ type Usecases interface {
 	GetUserProjects(user *userDomain.User) ([]domain.Project, *e.Error)
 	GetProjectByID(user *userDomain.User, id uuid.UUID) (*domain.Project, *e.Error)
 
+	CreateEnvironment(project *domain.Project, r *request.EnvironmentCreationRequest) *e.Error
 	GetEnvironments(project *domain.Project) ([]domain.Environment, *e.Error)
 }

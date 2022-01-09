@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrFormValidation = errors.New("failed to validate form")
+	ErrUrlValidation  = errors.New("failed to validate url")
 	ErrNotFound       = errors.New("endpoint not found")
 	ErrUnauthorized   = errors.New("unauthorized")
 
@@ -20,7 +21,7 @@ var (
 
 func codeForError(err error) int {
 	switch err {
-	case ErrFormValidation:
+	case ErrFormValidation, ErrUrlValidation:
 		return http.StatusBadRequest
 	case ErrNotFound:
 		return http.StatusNotFound

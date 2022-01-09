@@ -17,7 +17,7 @@ func (rH RoutesHandler) getProjectMiddleware(context *gin.Context) {
 	id, stderr := uuid.Parse(context.Param("project_id"))
 
 	if stderr != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+		rH.handleError(context, e.Wrap(ErrUrlValidation))
 		return
 	}
 
@@ -65,7 +65,7 @@ func (rH RoutesHandler) createProjectHandler(context *gin.Context) {
 	user := rH.getAuthenticatedUser(context)
 
 	if user == nil {
-		context.JSON(401, gin.H{"error": "Unauthorized"})
+		rH.handleError(context, e.Wrap(ErrUnauthorized))
 		return
 	}
 

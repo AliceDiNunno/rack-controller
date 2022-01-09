@@ -41,6 +41,8 @@ type ProjectRepository interface {
 
 type EnvironmentRepository interface {
 	GetEnvironments(projectID uuid.UUID) ([]domain.Environment, *e.Error)
+	GetEnvironmentByName(projectID uuid.UUID, name string) (*domain.Environment, *e.Error)
+	CreateEnvironment(environment *domain.Environment) *e.Error
 }
 
 type ServiceRepository interface {

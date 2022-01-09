@@ -21,15 +21,22 @@ type Environment struct {
 	ProjectId   uuid.UUID
 }
 
+func (r environmentRepo) CreateEnvironment(environment *domain.Environment) *e.Error {
+	if err := r.db.Create(environment).Error; err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
+}
+
 func (r environmentRepo) GetEnvironments(projectID uuid.UUID) ([]domain.Environment, *e.Error) {
 	var environments []Environment
 
-	if err := r.db.Find(&environments).Error; err != nil {
+	if err := r.db.Where("project_id = ?", projectID).Find(&environments).Error; err != nil {
 		return nil, e.Wrap(err)
 	}
 
 	return environmentsToDomain(environments), nil
-
 }
 
 func (r environmentRepo) GetEnvironmentByProjectId(project uuid.UUID) ([]domain.Environment, *e.Error) {
@@ -40,6 +47,18 @@ func (r environmentRepo) GetEnvironmentByProjectId(project uuid.UUID) ([]domain.
 	}
 
 	return environmentsToDomain(environments), nil
+}
+
+func (r environmentRepo) GetEnvironmentByName(projectID uuid.UUID, name string) (*domain.Environment, *e.Error) {
+	var environment Environment
+
+	if err := r.db.Where("project_id = ? AND display_name = ?", projectID, name).First(&environment).Error; err != nil {
+		return nil, e.Wrap(err)
+	}
+
+	envToReturn := environmentToDomain(environment)
+
+	return &envToReturn, nil
 }
 
 func environmentsToDomain(project []Environment) []domain.Environment {

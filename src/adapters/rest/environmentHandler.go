@@ -1,6 +1,8 @@
 package rest
 
 import (
+	e "github.com/AliceDiNunno/go-nested-traced-error"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,7 +45,25 @@ func (rH RoutesHandler) getEnvironmentsHandler(context *gin.Context) {
 }
 
 func (rH RoutesHandler) createEnvironmentHandler(context *gin.Context) {
+	project := rH.getProject(context)
+	if project == nil {
+		return
+	}
 
+	var environment request.EnvironmentCreationRequest
+	stderr := context.BindJSON(&environment)
+	if stderr != nil {
+		rH.handleError(context, e.Wrap(ErrFormValidation))
+		return
+	}
+
+	err := rH.usecases.CreateEnvironment(project, &environment)
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(201, success(environment))
 }
 
 func (rH RoutesHandler) deleteEnvironmentHandler(context *gin.Context) {
