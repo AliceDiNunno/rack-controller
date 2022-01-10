@@ -25,4 +25,7 @@ type Usecases interface {
 
 	CreateEnvironment(project *domain.Project, r *request.EnvironmentCreationRequest) *e.Error
 	GetEnvironments(project *domain.Project) ([]domain.Environment, *e.Error)
+
+	CreateService(project *domain.Project, r *request.ServiceCreationRequest) *e.Error
+	GetServices(project *domain.Project) ([]domain.Service, *e.Error)
 }

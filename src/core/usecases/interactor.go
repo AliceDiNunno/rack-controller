@@ -46,6 +46,7 @@ type EnvironmentRepository interface {
 }
 
 type ServiceRepository interface {
+	GetServices(id uuid.UUID) ([]domain.Service, *e.Error)
 }
 
 type Kubernetes interface {

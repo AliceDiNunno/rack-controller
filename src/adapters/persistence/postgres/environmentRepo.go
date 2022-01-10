@@ -71,11 +71,11 @@ func environmentsToDomain(project []Environment) []domain.Environment {
 	return environmentSlice
 }
 
-func environmentToDomain(project Environment) domain.Environment {
+func environmentToDomain(environment Environment) domain.Environment {
 	return domain.Environment{
-		ID:          project.ID,
-		DisplayName: project.DisplayName,
-		ProjectId:   project.ProjectId,
+		ID:          environment.ID,
+		DisplayName: environment.DisplayName,
+		ProjectId:   environment.ProjectId,
 	}
 }
 
