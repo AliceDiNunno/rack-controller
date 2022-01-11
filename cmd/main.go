@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes"
-	"github.com/AliceDiNunno/rack-controller/src/adapters/event"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/postgres"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest"
 	"github.com/AliceDiNunno/rack-controller/src/config"
@@ -58,9 +58,15 @@ func main() {
 		log.Fatalln(fmt.Sprintf("Database engine \"%s\" not supported", dbConfig.Engine))
 	}
 
+	var eventDispatcher = event.NewDispatcher()
+
+	eventDispatcher.RegisterForEvent("service.created", func(eventData interface{}) {
+
+	})
+
 	usecasesHandler := usecases.NewInteractor(userRepo, tokenRepo, jwtSignatureRepo,
 		projectRepo, environmentRepo, serviceRepo,
-		kubernetesInstance)
+		kubernetesInstance, eventDispatcher)
 
 	if initialUserConfiguration != nil {
 		err := usecasesHandler.CreateInitialUser(initialUserConfiguration)
@@ -68,10 +74,6 @@ func main() {
 			log.Warning(err.Err.Error())
 		}
 	}
-
-	eventManager := event.NewDispatcher()
-
-	_ = eventManager
 
 	restServer := rest.NewServer(ginConfiguration)
 	routesHandler := rest.NewRouter(usecasesHandler)

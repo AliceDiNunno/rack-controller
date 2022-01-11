@@ -1,6 +1,6 @@
 package request
 
 type ServiceCreationRequest struct {
-	Name      string
-	ImageName string
+	Name      string `binding:"required"`
+	ImageName string `binding:"required"`
 }

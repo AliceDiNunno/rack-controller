@@ -1,5 +1,5 @@
 package request
 
 type EnvironmentCreationRequest struct {
-	Name string `json:"name"`
+	Name string `binding:"required"`
 }

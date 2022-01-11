@@ -31,6 +31,26 @@ func (s serviceRepo) GetServices(projectID uuid.UUID) ([]domain.Service, *e.Erro
 	return servicesToDomain(services), nil
 }
 
+func (s serviceRepo) GetServiceByName(projectID uuid.UUID, name string) (*domain.Service, *e.Error) {
+	var service Service
+
+	if err := s.db.Where("project_id = ? AND display_name = ?", projectID, name).First(&service).Error; err != nil {
+		return nil, e.Wrap(err)
+	}
+
+	serviceToReturn := serviceToDomain(service)
+
+	return &serviceToReturn, nil
+}
+
+func (s serviceRepo) CreateService(service *domain.Service) *e.Error {
+	if err := s.db.Create(service).Error; err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
+}
+
 func servicesToDomain(services []Service) []domain.Service {
 	servicesSlice := []domain.Service{}
 

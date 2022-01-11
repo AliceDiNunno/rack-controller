@@ -10,3 +10,7 @@ type Service struct {
 
 	ProjectID uuid.UUID
 }
+
+func (s *Service) Initialize() {
+	s.ID = uuid.New()
+}

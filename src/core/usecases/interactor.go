@@ -47,6 +47,13 @@ type EnvironmentRepository interface {
 
 type ServiceRepository interface {
 	GetServices(id uuid.UUID) ([]domain.Service, *e.Error)
+	GetServiceByName(id uuid.UUID, name string) (*domain.Service, *e.Error)
+	CreateService(s *domain.Service) *e.Error
+}
+
+type EventDispatcher interface {
+	Dispatch(event string, payload interface{})
+	RegisterForEvent(event string, callback func(interface{}))
 }
 
 type Kubernetes interface {
@@ -93,11 +100,12 @@ type interactor struct {
 	environmentRepository  EnvironmentRepository
 	serviceRepository      ServiceRepository
 	kubernetes             Kubernetes
+	dispatcher             EventDispatcher
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
 	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository,
-	k8s Kubernetes) interactor {
+	k8s Kubernetes, ed EventDispatcher) interactor {
 	return interactor{
 		userRepository:         u,
 		userTokenRepository:    ut,
@@ -106,5 +114,6 @@ func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepo
 		environmentRepository:  env,
 		serviceRepository:      s,
 		kubernetes:             k8s,
+		dispatcher:             ed,
 	}
 }

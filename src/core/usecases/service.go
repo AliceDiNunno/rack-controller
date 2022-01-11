@@ -27,23 +27,25 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 	}
 
 	if r.Name == "" {
-		return e.Wrap(domain.ErrEnvironmentNameIsEmpty)
+		return e.Wrap(domain.ErrServiceNameIsEmpty)
 	}
 
-	env, err := i.environmentRepository.GetEnvironmentByName(project.ID, r.Name)
+	env, err := i.serviceRepository.GetServiceByName(project.ID, r.Name)
 
 	spew.Dump(env, err)
 
 	if err == nil && env != nil {
-		return e.Wrap(domain.ErrEnvironmentAlreadyExistsWithThisName)
+		return e.Wrap(domain.ErrServiceAlreadyExistsWithThisName)
 	}
 
-	environment := domain.Environment{
+	service := domain.Service{
 		DisplayName: r.Name,
-		ProjectId:   project.ID,
+		ProjectID:   project.ID,
 	}
 
-	environment.Initialize()
+	service.Initialize()
 
-	return i.environmentRepository.CreateEnvironment(&environment)
+	i.dispatcher.Dispatch("service.created", service)
+
+	return i.serviceRepository.CreateService(&service)
 }
