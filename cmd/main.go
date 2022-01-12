@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes"
-	"github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher/dispatcher"
+	events "github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher/handler"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/postgres"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest"
 	"github.com/AliceDiNunno/rack-controller/src/config"
-	usecases "github.com/AliceDiNunno/rack-controller/src/core/usecases"
+	"github.com/AliceDiNunno/rack-controller/src/core/usecases"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	stdlog "log"
@@ -58,12 +59,7 @@ func main() {
 		log.Fatalln(fmt.Sprintf("Database engine \"%s\" not supported", dbConfig.Engine))
 	}
 
-	var eventDispatcher = event.NewDispatcher()
-
-	eventDispatcher.RegisterForEvent("service.created", func(eventData interface{}) {
-
-	})
-
+	var eventDispatcher = dispatcher.NewDispatcher()
 	usecasesHandler := usecases.NewInteractor(userRepo, tokenRepo, jwtSignatureRepo,
 		projectRepo, environmentRepo, serviceRepo,
 		kubernetesInstance, eventDispatcher)
@@ -77,6 +73,9 @@ func main() {
 
 	restServer := rest.NewServer(ginConfiguration)
 	routesHandler := rest.NewRouter(usecasesHandler)
+
+	eventHandler := events.NewEventHandler(usecasesHandler, eventDispatcher)
+	eventHandler.SetEvents()
 
 	rest.SetRoutes(restServer, routesHandler)
 

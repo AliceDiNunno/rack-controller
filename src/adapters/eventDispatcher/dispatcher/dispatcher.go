@@ -1,16 +1,17 @@
-package event
+package dispatcher
 
-type dispatcher struct {
+type Dispatcher struct {
 	listeners map[string][]func(interface{})
 }
 
-func (d *dispatcher) Dispatch(event string, payload interface{}) {
+func (d *Dispatcher) Dispatch(event string, payload interface{}) {
 	for _, listener := range d.listeners[event] {
-		listener(payload)
+		//TODO: track events
+		go listener(payload)
 	}
 }
 
-func (d *dispatcher) RegisterForEvent(event string, callback func(interface{})) {
+func (d *Dispatcher) RegisterForEvent(event string, callback func(interface{})) {
 	if d.listeners[event] == nil {
 		d.listeners[event] = make([]func(interface{}), 0)
 	}
@@ -18,8 +19,8 @@ func (d *dispatcher) RegisterForEvent(event string, callback func(interface{})) 
 	d.listeners[event] = append(d.listeners[event], callback)
 }
 
-func NewDispatcher() *dispatcher {
-	return &dispatcher{
+func NewDispatcher() *Dispatcher {
+	return &Dispatcher{
 		listeners: make(map[string][]func(interface{})),
 	}
 }
