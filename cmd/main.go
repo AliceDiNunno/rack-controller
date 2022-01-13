@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher/dispatcher"
-	events "github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher/handler"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/postgres"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest"
 	"github.com/AliceDiNunno/rack-controller/src/config"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases"
+	"github.com/AliceDiNunno/rack-controller/src/core/usecases/events"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	stdlog "log"
@@ -43,7 +43,7 @@ func main() {
 		err := db.AutoMigrate(
 			//Migrating user tables
 			&postgres.User{}, &postgres.JwtSignature{}, &postgres.UserToken{},
-			//Migrating cluster tables
+			//Migrating events tables
 			&postgres.Project{}, &postgres.Environment{}, &postgres.Service{})
 		if err != nil {
 			log.Fatalln(err)
