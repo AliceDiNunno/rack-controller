@@ -39,8 +39,6 @@ func (i interactor) GetProjectByID(user *userDomain.User, id uuid.UUID) (*domain
 }
 
 func (i interactor) CreateProject(user *userDomain.User, projectCreationRequest request.CreateProjectRequest) (*domain.Project, *e.Error) {
-	i.dispatcher.Dispatch(domain.EventProjectCreated, nil)
-
 	if user == nil {
 		return nil, e.Wrap(domain.ErrUserIsNil)
 	}
@@ -67,6 +65,8 @@ func (i interactor) CreateProject(user *userDomain.User, projectCreationRequest 
 	if err != nil {
 		return nil, e.Wrap(domain.ErrUnableToCreateProject)
 	}
+
+	i.dispatcher.Dispatch(domain.EventProjectCreated, project)
 
 	return &project, nil
 }

@@ -62,7 +62,7 @@ func main() {
 	var eventDispatcher = dispatcher.NewDispatcher()
 	usecasesHandler := usecases.NewInteractor(userRepo, tokenRepo, jwtSignatureRepo,
 		projectRepo, environmentRepo, serviceRepo,
-		kubernetesInstance, eventDispatcher)
+		eventDispatcher)
 
 	if initialUserConfiguration != nil {
 		err := usecasesHandler.CreateInitialUser(initialUserConfiguration)
@@ -74,7 +74,7 @@ func main() {
 	restServer := rest.NewServer(ginConfiguration)
 	routesHandler := rest.NewRouter(usecasesHandler)
 
-	eventHandler := events.NewEventHandler(usecasesHandler, eventDispatcher)
+	eventHandler := events.NewEventHandler(usecasesHandler, eventDispatcher, kubernetesInstance)
 	eventHandler.SetEvents()
 
 	rest.SetRoutes(restServer, routesHandler)
