@@ -5,6 +5,7 @@ import "github.com/google/uuid"
 type Project struct {
 	ID          uuid.UUID
 	DisplayName string
+	Slug        string
 
 	UserID uuid.UUID
 }

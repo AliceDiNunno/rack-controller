@@ -34,6 +34,16 @@ func GetEnvString(name string) (string, error) {
 	return envVariable, nil
 }
 
+func GetEnvStringOrDefault(name string, defaultValue string) string {
+	envVariable, err := GetEnvString(name)
+
+	if err != nil {
+		return defaultValue
+	}
+
+	return envVariable
+}
+
 func GetEnvInt(name string) (int, error) {
 	value, err := GetEnvString(name)
 
@@ -51,6 +61,16 @@ func GetEnvInt(name string) (int, error) {
 	return envVariable, nil
 }
 
+func GetEnvIntOrDefault(name string, defaultValue int) int {
+	envVariable, err := GetEnvInt(name)
+
+	if err != nil {
+		return defaultValue
+	}
+
+	return envVariable
+}
+
 func GetEnvBool(name string) (bool, error) {
 	value, err := GetEnvString(name)
 
@@ -59,6 +79,16 @@ func GetEnvBool(name string) (bool, error) {
 	}
 
 	return value == "true" || value == "TRUE" || value == "1" || value == "yes" || value == "YES", nil
+}
+
+func GetEnvBoolOrDefault(name string, defaultValue bool) bool {
+	envVariable, err := GetEnvBool(name)
+
+	if err != nil {
+		return defaultValue
+	}
+
+	return envVariable
 }
 
 func RequireEnvString(name string) string {

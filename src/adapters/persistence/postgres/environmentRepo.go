@@ -17,6 +17,7 @@ type Environment struct {
 
 	ID          uuid.UUID
 	DisplayName string
+	Slug        string
 	Project     Project
 	ProjectId   uuid.UUID
 }
@@ -76,6 +77,7 @@ func environmentToDomain(environment Environment) domain.Environment {
 		ID:          environment.ID,
 		DisplayName: environment.DisplayName,
 		ProjectId:   environment.ProjectId,
+		Slug:        environment.Slug,
 	}
 }
 

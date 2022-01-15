@@ -3,9 +3,9 @@ package domain
 import "errors"
 
 var (
-	ErrUserIsNil   = errors.New("user is nil")
-	ErrIdCantBeNil = errors.New("id can't be nil")
-
+	ErrUserIsNil      = errors.New("user is nil")
+	ErrIdCantBeNil    = errors.New("id can't be nil")
+	ErrNameTooLong    = errors.New("name is too long (max 32)")
 	ErrInvalidRequest = errors.New("invalid request")
 
 	ErrUnableToGetProjects              = errors.New("unable to get projects")

@@ -35,7 +35,6 @@ type DeploymentCondition struct {
 }
 
 type DeploymentCreationRequest struct {
-	TemplateId     int
 	DeploymentName string
 	ImageName      string
 	Ports          []Port

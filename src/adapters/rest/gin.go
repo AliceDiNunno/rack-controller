@@ -13,7 +13,13 @@ type GinServer struct {
 	Router *gin.Engine
 }
 
-func NewServer(config config.GinConfig) GinServer {
+func NewServer(globalConfig config.GlobalConfig, config config.GinConfig) GinServer {
+	if globalConfig.CurrentEnvironment == "prod" || globalConfig.CurrentEnvironment == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
 	server := GinServer{
 		Config: config,
 		Router: gin.New(),
@@ -23,9 +29,9 @@ func NewServer(config config.GinConfig) GinServer {
 }
 
 func (server GinServer) Start() {
-	if server.Config.Tls {
+	if server.Config.TlsEnabled {
 		httpsServer := http.Server{
-			Addr:    fmt.Sprintf("%s:%d", server.Config.Host, server.Config.Port),
+			Addr:    fmt.Sprintf("%s:%d", server.Config.ListenAddress, server.Config.Port),
 			Handler: server.Router,
 		}
 
@@ -33,9 +39,9 @@ func (server GinServer) Start() {
 		if err != nil {
 			log.Fatalln("Could not start server", err)
 		}
-		log.Printf("Started server at %s on port %d\n", server.Config.Host, server.Config.Port)
+		log.Printf("Started server at %s on port %d\n", server.Config.ListenAddress, server.Config.Port)
 	} else {
-		if err := server.Router.Run(fmt.Sprintf("%s:%d", server.Config.Host, server.Config.Port)); err != nil {
+		if err := server.Router.Run(fmt.Sprintf("%s:%d", server.Config.ListenAddress, server.Config.Port)); err != nil {
 			println("Couldn't start router")
 		}
 	}

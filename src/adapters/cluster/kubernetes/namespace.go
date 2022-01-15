@@ -36,3 +36,17 @@ func (k8s kubernetesInstance) GetNamespaces() ([]string, *e.Error) {
 
 	return mapList, e.Wrap(err)
 }
+
+func (k8s kubernetesInstance) NamespaceExists(namespace string) bool {
+	entry, err := k8s.Client.CoreV1().Namespaces().Get(context.Background(), namespace, v1.GetOptions{})
+
+	if err != nil {
+		return false
+	}
+
+	if entry != nil && entry.Name == namespace {
+		return true
+	}
+
+	return false
+}

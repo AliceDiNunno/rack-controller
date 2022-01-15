@@ -2,7 +2,7 @@ package templates
 
 import "github.com/AliceDiNunno/rack-controller/src/core/domain"
 
-var containerTemplate = domain.Template{
+var ContainerTemplate = domain.Template{
 	Id:          0,
 	Name:        "Container",
 	Description: "Deploys a new container",
@@ -12,21 +12,4 @@ var containerTemplate = domain.Template{
 		Ports:       true,
 	},
 	Exec: ExecBasicContainerTemplate,
-}
-
-func AvailableTemplateCategories() []domain.TemplateCategory {
-	return []domain.TemplateCategory{
-		{
-			Name: "Apps",
-			Templates: []domain.Template{
-				containerTemplate,
-			},
-		},
-	}
-}
-
-func AvailableTemplates() []domain.Template {
-	return []domain.Template{
-		containerTemplate,
-	}
 }

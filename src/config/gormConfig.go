@@ -1,7 +1,6 @@
 package config
 
 type GormConfig struct {
-	Engine   string
 	Host     string
 	Port     int
 	User     string
@@ -11,7 +10,6 @@ type GormConfig struct {
 
 func LoadGormConfiguration() GormConfig {
 	return GormConfig{
-		Engine:   RequireEnvString("DB_ENGINE"),
 		Host:     RequireEnvString("DB_HOST"),
 		Port:     RequireEnvInt("DB_PORT"),
 		User:     RequireEnvString("DB_USER"),

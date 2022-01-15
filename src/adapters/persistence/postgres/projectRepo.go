@@ -17,6 +17,7 @@ type Project struct {
 
 	ID           uuid.UUID
 	DisplayName  string
+	Slug         string
 	Environments []Environment
 	Services     []Service
 
@@ -47,6 +48,18 @@ func (p projectRepo) GetProjectByID(id uuid.UUID) (*domain.Project, *e.Error) {
 	return &projectDomain, nil
 }
 
+func (p projectRepo) GetProjectBySlug(slug string) (*domain.Project, *e.Error) {
+	var project Project
+	err := p.db.Where("slug = ?", slug).First(&project).Error
+	if err != nil {
+		return nil, e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	projectDomain := projectToDomain(project)
+
+	return &projectDomain, nil
+}
+
 func (p projectRepo) GetProjectsByUserId(userId uuid.UUID) ([]domain.Project, *e.Error) {
 	var projects []Project
 	if err := p.db.Where("user_id = ?", userId).Find(&projects).Error; err != nil {
@@ -66,14 +79,6 @@ func (p projectRepo) CreateProject(project domain.Project) *e.Error {
 	return nil
 }
 
-func projectFromDomain(project domain.Project) Project {
-	return Project{
-		ID:          project.ID,
-		DisplayName: project.DisplayName,
-		UserID:      project.UserID,
-	}
-}
-
 func projectsToDomain(project []Project) []domain.Project {
 	projectSlice := []domain.Project{}
 
@@ -84,11 +89,21 @@ func projectsToDomain(project []Project) []domain.Project {
 	return projectSlice
 }
 
+func projectFromDomain(project domain.Project) Project {
+	return Project{
+		ID:          project.ID,
+		DisplayName: project.DisplayName,
+		UserID:      project.UserID,
+		Slug:        project.Slug,
+	}
+}
+
 func projectToDomain(project Project) domain.Project {
 	return domain.Project{
 		ID:          project.ID,
 		DisplayName: project.DisplayName,
 		UserID:      project.UserID,
+		Slug:        project.Slug,
 	}
 }
 

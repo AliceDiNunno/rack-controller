@@ -17,6 +17,7 @@ type Service struct {
 	ID          uuid.UUID
 	DisplayName string
 	ImageName   string
+	Slug        string
 	Project     Project
 	ProjectID   uuid.UUID
 }
@@ -51,6 +52,14 @@ func (s serviceRepo) CreateService(service *domain.Service) *e.Error {
 	return nil
 }
 
+func (s serviceRepo) UpdateService(service *domain.Service) *e.Error {
+	if err := s.db.Save(service).Error; err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
+}
+
 func servicesToDomain(services []Service) []domain.Service {
 	servicesSlice := []domain.Service{}
 
@@ -66,6 +75,7 @@ func serviceToDomain(service Service) domain.Service {
 		ID:          service.ID,
 		DisplayName: service.DisplayName,
 		ProjectID:   service.ProjectID,
+		Slug:        service.Slug,
 	}
 }
 

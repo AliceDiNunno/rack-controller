@@ -4,6 +4,7 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
+	"github.com/AliceDiNunno/rack-controller/src/core/usecases/kubernetes"
 	"github.com/google/uuid"
 )
 
@@ -35,6 +36,7 @@ type ProjectRepository interface {
 	GetProjectsByUserId(userId uuid.UUID) ([]domain.Project, *e.Error)
 	GetProjectByName(name string) (*domain.Project, *e.Error)
 	GetProjectByID(ID uuid.UUID) (*domain.Project, *e.Error)
+	GetProjectBySlug(slug string) (*domain.Project, *e.Error)
 	CreateProject(project domain.Project) *e.Error
 }
 
@@ -48,6 +50,7 @@ type ServiceRepository interface {
 	GetServices(id uuid.UUID) ([]domain.Service, *e.Error)
 	GetServiceByName(id uuid.UUID, name string) (*domain.Service, *e.Error)
 	CreateService(s *domain.Service) *e.Error
+	UpdateService(s *domain.Service) *e.Error
 }
 
 type EventDispatcher interface {
@@ -63,11 +66,12 @@ type interactor struct {
 	environmentRepository  EnvironmentRepository
 	serviceRepository      ServiceRepository
 	dispatcher             EventDispatcher
+	kubeClient             kubernetes.Kubernetes
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
 	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository,
-	ed EventDispatcher) interactor {
+	kube kubernetes.Kubernetes, ed EventDispatcher) interactor {
 	return interactor{
 		userRepository:         u,
 		userTokenRepository:    ut,
@@ -76,5 +80,6 @@ func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepo
 		environmentRepository:  env,
 		serviceRepository:      s,
 		dispatcher:             ed,
+		kubeClient:             kube,
 	}
 }

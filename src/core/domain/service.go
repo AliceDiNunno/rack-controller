@@ -7,6 +7,7 @@ type Service struct {
 
 	DisplayName string
 	ImageName   string
+	Slug        string
 
 	ProjectID uuid.UUID
 }
