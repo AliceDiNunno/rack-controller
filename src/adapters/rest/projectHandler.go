@@ -103,3 +103,11 @@ func (rH RoutesHandler) updateProjectHandler(context *gin.Context) {
 func (rH RoutesHandler) deleteProjectHandler(context *gin.Context) {
 
 }
+
+func (rH RoutesHandler) getProjectEnvHandler(context *gin.Context) {
+
+}
+
+func (rH RoutesHandler) updateProjectEnvHandler(context *gin.Context) {
+
+}

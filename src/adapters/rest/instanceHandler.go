@@ -17,3 +17,11 @@ func (rH RoutesHandler) getServiceInstanceHandler(context *gin.Context) {
 func (rH RoutesHandler) deleteServiceInstanceHandler(context *gin.Context) {
 
 }
+
+func (rH RoutesHandler) getServiceInstanceEventsHandler(context *gin.Context) {
+
+}
+
+func (rH RoutesHandler) getServiceInstanceLogsHandler(context *gin.Context) {
+
+}

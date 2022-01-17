@@ -69,3 +69,11 @@ func (rH RoutesHandler) createEnvironmentHandler(context *gin.Context) {
 func (rH RoutesHandler) deleteEnvironmentHandler(context *gin.Context) {
 
 }
+
+func (rH RoutesHandler) getEnvironmentEnvHandler(context *gin.Context) {
+
+}
+
+func (rH RoutesHandler) updateEnvironmentEnvHandler(context *gin.Context) {
+
+}

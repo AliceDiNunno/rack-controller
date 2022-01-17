@@ -35,13 +35,18 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedProjectEndpoint.GET("", routesHandler.getProjectHandler)
 	selectedProjectEndpoint.PUT("", routesHandler.updateProjectHandler)
 	selectedProjectEndpoint.DELETE("", routesHandler.deleteProjectHandler)
+	selectedProjectEndpoint.GET("/env", routesHandler.getProjectEnvHandler)
+	selectedProjectEndpoint.POST("/env", routesHandler.updateProjectEnvHandler)
 
 	//This endpoint is used to get the environment list and create an environment
 	environmentEndpoint := selectedProjectEndpoint.Group("/environments")
 	environmentEndpoint.GET("", routesHandler.getEnvironmentsHandler)
 	environmentEndpoint.POST("", routesHandler.createEnvironmentHandler)
-	environmentEndpoint.Group("/:environment_id", routesHandler.getProjectEnvironmentsMiddleware).
-		DELETE("", routesHandler.deleteEnvironmentHandler)
+
+	selectedEnvironmentEndpoint := environmentEndpoint.Group("/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
+	selectedEnvironmentEndpoint.DELETE("", routesHandler.deleteEnvironmentHandler)
+	selectedEnvironmentEndpoint.GET("/env", routesHandler.getEnvironmentEnvHandler)
+	selectedEnvironmentEndpoint.POST("/env", routesHandler.updateEnvironmentEnvHandler)
 
 	serviceEndpoint := selectedProjectEndpoint.Group("/services")
 	serviceEndpoint.GET("", routesHandler.getServicesHandler)
@@ -51,14 +56,18 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceEndpoint.GET("", routesHandler.getServiceHandler)
 	selectedServiceEndpoint.PUT("", routesHandler.updateServiceHandler)
 	selectedServiceEndpoint.DELETE("", routesHandler.deleteServiceHandler)
+	selectedEnvironmentEndpoint.GET("/env", routesHandler.getServiceEnvHandler)
+	selectedEnvironmentEndpoint.POST("/env", routesHandler.updateServiceEnvHandler)
 
 	serviceSelectedEnvironmentEndpoint := selectedServiceEndpoint.Group("/environment/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
 	serviceSelectedEnvironmentEndpoint.GET("", routesHandler.getServiceOfEnvironmentHandler)
 
-	serviceInstanceEndpoint := selectedServiceEndpoint.Group("/instances")
+	serviceInstanceEndpoint := serviceSelectedEnvironmentEndpoint.Group("/instances")
 	serviceInstanceEndpoint.GET("", routesHandler.getServiceInstancesHandler)
 
-	selectedServiceInstanceEndpoint := selectedServiceEndpoint.Group("/:instance_id", routesHandler.getServiceInstanceMiddleware)
+	selectedServiceInstanceEndpoint := serviceInstanceEndpoint.Group("/:instance_id", routesHandler.getServiceInstanceMiddleware)
 	selectedServiceInstanceEndpoint.GET("", routesHandler.getServiceInstanceHandler)
 	selectedServiceInstanceEndpoint.DELETE("", routesHandler.deleteServiceInstanceHandler)
+	selectedServiceInstanceEndpoint.GET("/logs", routesHandler.getServiceInstanceLogsHandler)
+	selectedServiceInstanceEndpoint.GET("/events", routesHandler.getServiceInstanceEventsHandler)
 }

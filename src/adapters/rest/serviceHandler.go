@@ -62,3 +62,11 @@ func (rH RoutesHandler) getServiceHandler(context *gin.Context) {
 func (rH RoutesHandler) updateServiceHandler(context *gin.Context) {
 
 }
+
+func (rH RoutesHandler) getServiceEnvHandler(context *gin.Context) {
+
+}
+
+func (rH RoutesHandler) updateServiceEnvHandler(context *gin.Context) {
+
+}
