@@ -63,10 +63,10 @@ func (rH RoutesHandler) updateServiceHandler(context *gin.Context) {
 
 }
 
-func (rH RoutesHandler) getServiceEnvHandler(context *gin.Context) {
+func (rH RoutesHandler) getServiceConfigHandler(context *gin.Context) {
 
 }
 
-func (rH RoutesHandler) updateServiceEnvHandler(context *gin.Context) {
+func (rH RoutesHandler) updateServiceConfigHandler(context *gin.Context) {
 
 }

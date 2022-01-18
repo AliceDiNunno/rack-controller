@@ -104,10 +104,23 @@ func (rH RoutesHandler) deleteProjectHandler(context *gin.Context) {
 
 }
 
-func (rH RoutesHandler) getProjectEnvHandler(context *gin.Context) {
+func (rH RoutesHandler) getProjectConfigHandler(context *gin.Context) {
+	project := rH.getProject(context)
 
+	if project == nil {
+		return
+	}
+
+	envs, err := rH.usecases.GetProjectConfig(project)
+
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(envs))
 }
 
-func (rH RoutesHandler) updateProjectEnvHandler(context *gin.Context) {
+func (rH RoutesHandler) updateProjectConfigHandler(context *gin.Context) {
 
 }

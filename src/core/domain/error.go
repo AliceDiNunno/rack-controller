@@ -17,6 +17,7 @@ var (
 
 	ErrEnvironmentNameIsEmpty               = errors.New("environment name is empty")
 	ErrEnvironmentAlreadyExistsWithThisName = errors.New("an environment already exists with this name")
+	ErrEnvironmentNotFound                  = errors.New("environment not found")
 
 	ErrServiceNameIsEmpty               = errors.New("service name is empty")
 	ErrServiceAlreadyExistsWithThisName = errors.New("a service already exists with this name")

@@ -2,6 +2,7 @@ package clusterDomain
 
 import "errors"
 
+//TODO move to userDomain
 var (
 	ErrCannotCreateInitialUserIfUserTableNotEmpty = errors.New("cannot create initial user if user table is not empty")
 	ErrUserNotFound                               = errors.New("user not found")

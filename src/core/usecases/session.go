@@ -85,6 +85,7 @@ func (i interactor) CreateJwtToken(request userDomain.JwtTokenRequest) (string, 
 
 	payload.Initialize()
 
+	//TODO: get a better secret value
 	mySigningKey := []byte("AllYourBase")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 	signedToken, stderr := token.SignedString(mySigningKey)

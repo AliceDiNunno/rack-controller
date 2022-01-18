@@ -62,6 +62,18 @@ func (r environmentRepo) GetEnvironmentByName(projectID uuid.UUID, name string) 
 	return &envToReturn, nil
 }
 
+func (r environmentRepo) GetEnvironmentByID(projectID uuid.UUID, ID uuid.UUID) (*domain.Environment, *e.Error) {
+	var environment Environment
+
+	if err := r.db.Where("project_id = ? AND id = ?", projectID, ID).First(&environment).Error; err != nil {
+		return nil, e.Wrap(err)
+	}
+
+	envToReturn := environmentToDomain(environment)
+
+	return &envToReturn, nil
+}
+
 func environmentsToDomain(project []Environment) []domain.Environment {
 	environmentSlice := []domain.Environment{}
 

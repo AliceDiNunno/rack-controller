@@ -12,7 +12,7 @@ import (
 func (i interactor) GetUserById(id uuid.UUID) (*userDomain.User, *e.Error) {
 	user, err := i.userRepository.GetUserById(id)
 	if err != nil {
-		return nil, err
+		return nil, err.Append(clusterDomain.ErrUserNotFound)
 	}
 	return user, nil
 }

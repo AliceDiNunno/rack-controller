@@ -40,6 +40,7 @@ func (i interactor) GetProjectByID(user *userDomain.User, id uuid.UUID) (*domain
 	return project, nil
 }
 
+//TODO: move to neutral usecase file
 func slugify(s string) string {
 	var result strings.Builder
 	for i := 0; i < len(s); i++ {

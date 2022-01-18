@@ -3,6 +3,7 @@ package usecases
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases/kubernetes"
 	"github.com/google/uuid"
@@ -43,14 +44,20 @@ type ProjectRepository interface {
 type EnvironmentRepository interface {
 	GetEnvironments(projectID uuid.UUID) ([]domain.Environment, *e.Error)
 	GetEnvironmentByName(projectID uuid.UUID, name string) (*domain.Environment, *e.Error)
+	GetEnvironmentByID(projectID uuid.UUID, ID uuid.UUID) (*domain.Environment, *e.Error)
 	CreateEnvironment(environment *domain.Environment) *e.Error
 }
 
 type ServiceRepository interface {
-	GetServices(id uuid.UUID) ([]domain.Service, *e.Error)
-	GetServiceByName(id uuid.UUID, name string) (*domain.Service, *e.Error)
+	GetServices(ID uuid.UUID) ([]domain.Service, *e.Error)
+	GetServiceByName(ID uuid.UUID, name string) (*domain.Service, *e.Error)
 	CreateService(s *domain.Service) *e.Error
 	UpdateService(s *domain.Service) *e.Error
+}
+
+type ConfigRepository interface {
+	GetConfigByObjectID(ID uuid.UUID) ([]clusterDomain.Environment, *e.Error)
+	SetConfig(ID uuid.UUID, config []clusterDomain.Environment) *e.Error
 }
 
 type EventDispatcher interface {
@@ -67,6 +74,38 @@ type interactor struct {
 	serviceRepository      ServiceRepository
 	dispatcher             EventDispatcher
 	kubeClient             kubernetes.Kubernetes
+}
+
+func (i interactor) GetProjectConfig(project *domain.Project) ([]clusterDomain.Environment, *e.Error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i interactor) UpdateProjectConfig(project *domain.Project, envVariables []clusterDomain.Environment) *e.Error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i interactor) GetEnvironmentConfig(env *domain.Environment) ([]clusterDomain.Environment, *e.Error) {
+	if env == nil {
+		return nil, e.Wrap(domain.ErrEnvironmentNotFound)
+	}
+
+}
+
+func (i interactor) UpdateEnvironmentConfig(env *domain.Environment, envVariables []clusterDomain.Environment) *e.Error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i interactor) GetServiceConfig(service *domain.Service) ([]clusterDomain.Environment, *e.Error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i interactor) UpdateServiceConfig(service *domain.Service, envVariables []clusterDomain.Environment) *e.Error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
