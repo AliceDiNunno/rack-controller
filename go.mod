@@ -1,6 +1,6 @@
 module github.com/AliceDiNunno/rack-controller
 
-go 1.17
+go 1.18
 
 require (
 	github.com/AliceDiNunno/go-nested-traced-error v1.1.0

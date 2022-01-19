@@ -74,10 +74,10 @@ func (r environmentRepo) GetEnvironmentByID(projectID uuid.UUID, ID uuid.UUID) (
 	return &envToReturn, nil
 }
 
-func environmentsToDomain(project []Environment) []domain.Environment {
+func environmentsToDomain(environment []Environment) []domain.Environment {
 	environmentSlice := []domain.Environment{}
 
-	for _, p := range project {
+	for _, p := range environment {
 		environmentSlice = append(environmentSlice, environmentToDomain(p))
 	}
 

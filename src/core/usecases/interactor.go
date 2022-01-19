@@ -72,13 +72,23 @@ type interactor struct {
 	projectRepository      ProjectRepository
 	environmentRepository  EnvironmentRepository
 	serviceRepository      ServiceRepository
+	configRepository       ConfigRepository
 	dispatcher             EventDispatcher
 	kubeClient             kubernetes.Kubernetes
 }
 
 func (i interactor) GetProjectConfig(project *domain.Project) ([]clusterDomain.Environment, *e.Error) {
-	//TODO implement me
-	panic("implement me")
+	if project == nil {
+		return nil, e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	config, err := i.configRepository.GetConfigByObjectID(project.ID)
+
+	if err != nil {
+		return nil, err.Append(domain.UnableToGetConfig)
+	}
+
+	return config, nil
 }
 
 func (i interactor) UpdateProjectConfig(project *domain.Project, envVariables []clusterDomain.Environment) *e.Error {
@@ -91,11 +101,17 @@ func (i interactor) GetEnvironmentConfig(env *domain.Environment) ([]clusterDoma
 		return nil, e.Wrap(domain.ErrEnvironmentNotFound)
 	}
 
+	config, err := i.configRepository.GetConfigByObjectID(env.ID)
+
+	if err != nil {
+		return nil, err.Append(domain.UnableToGetConfig)
+	}
+
+	return config, nil
 }
 
 func (i interactor) UpdateEnvironmentConfig(env *domain.Environment, envVariables []clusterDomain.Environment) *e.Error {
-	//TODO implement me
-	panic("implement me")
+	
 }
 
 func (i interactor) GetServiceConfig(service *domain.Service) ([]clusterDomain.Environment, *e.Error) {
@@ -109,7 +125,7 @@ func (i interactor) UpdateServiceConfig(service *domain.Service, envVariables []
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
-	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository,
+	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository, c ConfigRepository,
 	kube kubernetes.Kubernetes, ed EventDispatcher) interactor {
 	return interactor{
 		userRepository:         u,
@@ -118,6 +134,7 @@ func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepo
 		projectRepository:      repo,
 		environmentRepository:  env,
 		serviceRepository:      s,
+		configRepository:       c,
 		dispatcher:             ed,
 		kubeClient:             kube,
 	}

@@ -37,7 +37,7 @@ func main() {
 		//Migrating user tables
 		&postgres.User{}, &postgres.JwtSignature{}, &postgres.UserToken{},
 		//Migrating kubernetes-related tables
-		&postgres.Project{}, &postgres.Config{}, &postgres.Service{})
+		&postgres.Project{}, &postgres.Config{}, &postgres.Service{}, &postgres.Config{})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -48,11 +48,12 @@ func main() {
 	projectRepo := postgres.NewProjectRepo(db)
 	environmentRepo := postgres.NewEnvironmentRepo(db)
 	serviceRepo := postgres.NewServiceRepo(db)
+	configRepo := postgres.NewConfigRepo(db)
 
 	//Loading the event dispatcher
 	var eventDispatcher = dispatcher.NewDispatcher()
 	usecasesHandler := usecases.NewInteractor(userRepo, tokenRepo, jwtSignatureRepo,
-		projectRepo, environmentRepo, serviceRepo,
+		projectRepo, environmentRepo, serviceRepo, configRepo,
 		kubernetesInstance, eventDispatcher)
 
 	if initialUserConfiguration != nil {
