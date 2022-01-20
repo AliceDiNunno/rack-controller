@@ -18,7 +18,7 @@ type Project struct {
 	ID           uuid.UUID
 	DisplayName  string
 	Slug         string
-	Environments []Config
+	Environments []Environment
 	Services     []Service
 
 	UserID uuid.UUID
