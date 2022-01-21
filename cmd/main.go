@@ -37,7 +37,7 @@ func main() {
 		//Migrating user tables
 		&postgres.User{}, &postgres.JwtSignature{}, &postgres.UserToken{},
 		//Migrating kubernetes-related tables
-		&postgres.Project{}, &postgres.Config{}, &postgres.Service{}, &postgres.Config{})
+		&postgres.Environment{}, &postgres.Project{}, &postgres.Config{}, &postgres.Service{})
 	if err != nil {
 		log.Fatalln(err)
 	}

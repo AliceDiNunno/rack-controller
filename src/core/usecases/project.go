@@ -5,6 +5,7 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/google/uuid"
 	"strings"
@@ -105,6 +106,34 @@ func (i interactor) CreateProject(user *userDomain.User, projectCreationRequest 
 	}
 
 	return &project, nil
+}
+
+func (i interactor) GetProjectConfig(project *domain.Project) ([]clusterDomain.Environment, *e.Error) {
+	if project == nil {
+		return nil, e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	config, err := i.configRepository.GetConfigByObjectID(project.ID)
+
+	if err != nil {
+		return nil, err.Append(domain.UnableToGetConfig)
+	}
+
+	return config, nil
+}
+
+func (i interactor) UpdateProjectConfig(project *domain.Project, envVariables []clusterDomain.Environment) *e.Error {
+	if project == nil {
+		return e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	err := i.configRepository.SetConfig(project.ID, envVariables)
+
+	if err != nil {
+		return err.Append(domain.UnableToUpdateConfig)
+	}
+
+	return nil
 }
 
 func (i interactor) EnvVariablesForProject(project *domain.Project) map[string]string {

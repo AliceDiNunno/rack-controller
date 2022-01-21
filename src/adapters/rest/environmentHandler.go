@@ -88,19 +88,41 @@ func (rH RoutesHandler) deleteEnvironmentHandler(context *gin.Context) {
 
 func (rH RoutesHandler) getEnvironmentConfigHandler(context *gin.Context) {
 	environment := rH.getEnvironment(context)
+
 	if environment == nil {
 		return
 	}
 
-	env, err := rH.usecases.GetEnvironmentConfig(environment)
+	config, err := rH.usecases.GetEnvironmentConfig(environment)
+
 	if err != nil {
 		rH.handleError(context, err)
 		return
 	}
 
-	context.JSON(200, success(env))
+	context.JSON(200, success(config))
 }
 
 func (rH RoutesHandler) updateEnvironmentConfigHandler(context *gin.Context) {
+	environment := rH.getEnvironment(context)
 
+	if environment == nil {
+		return
+	}
+
+	var configRequest request.UpdateConfigRequest
+
+	if err := context.ShouldBindJSON(&configRequest); err != nil {
+		rH.handleError(context, e.Wrap(ErrFormValidation))
+		return
+	}
+
+	err := rH.usecases.UpdateEnvironmentConfig(environment, configRequest)
+
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(environment))
 }

@@ -4,6 +4,7 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 )
@@ -73,6 +74,34 @@ func (i interactor) GetEnvironmentByID(project *domain.Project, id uuid.UUID) (*
 	}
 
 	return environment, nil
+}
+
+func (i interactor) GetEnvironmentConfig(env *domain.Environment) ([]clusterDomain.Environment, *e.Error) {
+	if env == nil {
+		return nil, e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	config, err := i.configRepository.GetConfigByObjectID(env.ID)
+
+	if err != nil {
+		return nil, err.Append(domain.UnableToGetConfig)
+	}
+
+	return config, nil
+}
+
+func (i interactor) UpdateEnvironmentConfig(env *domain.Environment, envVariables []clusterDomain.Environment) *e.Error {
+	if env == nil {
+		return e.Wrap(domain.ErrEnvironmentNotFound)
+	}
+
+	err := i.configRepository.SetConfig(env.ID, envVariables)
+
+	if err != nil {
+		return err.Append(domain.UnableToUpdateConfig)
+	}
+
+	return nil
 }
 
 func (i interactor) EnvVariablesForEnvironment(environment *domain.Environment) map[string]string {

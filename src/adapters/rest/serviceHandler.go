@@ -3,11 +3,47 @@ package rest
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func (rH RoutesHandler) getServiceMiddleware(context *gin.Context) {
+	project := rH.getProject(context)
+	environment := rH.getEnvironment(context)
 
+	user := rH.getAuthenticatedUser(context)
+	if user == nil {
+		return
+	}
+
+	id, stderr := uuid.Parse(context.Param("service_id"))
+
+	if stderr != nil {
+		rH.handleError(context, e.Wrap(ErrFormValidation))
+		return
+	}
+
+	service, err := rH.usecases.GetServiceById(project, environment, id)
+
+	if err != nil {
+		rH.handleError(context, err.Append(domain.ErrEnvironmentNotFound))
+		return
+	}
+
+	context.Set("service", service)
+}
+
+func (rH RoutesHandler) getService(c *gin.Context) *domain.Service {
+	auth, exists := c.Get("service")
+
+	if !exists {
+		return nil
+	}
+
+	service := auth.(*domain.Service)
+
+	return service
 }
 
 func (rH RoutesHandler) getServiceOfEnvironmentHandler(context *gin.Context) {
@@ -64,9 +100,42 @@ func (rH RoutesHandler) updateServiceHandler(context *gin.Context) {
 }
 
 func (rH RoutesHandler) getServiceConfigHandler(context *gin.Context) {
+	environment := rH.getEnvironment(context)
 
+	if environment == nil {
+		return
+	}
+
+	config, err := rH.usecases.GetEnvironmentConfig(environment)
+
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(config))
 }
 
 func (rH RoutesHandler) updateServiceConfigHandler(context *gin.Context) {
+	service := rH.getService(context)
 
+	if service == nil {
+		return
+	}
+
+	var configRequest request.UpdateConfigRequest
+
+	if err := context.ShouldBindJSON(&configRequest); err != nil {
+		rH.handleError(context, e.Wrap(ErrFormValidation))
+		return
+	}
+
+	err := rH.usecases.UpdateEnvironmentConfig(service, configRequest)
+
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(service))
 }

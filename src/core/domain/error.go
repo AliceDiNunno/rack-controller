@@ -21,5 +21,6 @@ var (
 
 	ErrServiceNameIsEmpty = errors.New("service name is empty")
 
-	UnableToGetConfig = errors.New("unable to get config")
+	UnableToGetConfig    = errors.New("unable to get config")
+	UnableToUpdateConfig = errors.New("unable to update config")
 )

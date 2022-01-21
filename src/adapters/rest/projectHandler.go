@@ -111,16 +111,36 @@ func (rH RoutesHandler) getProjectConfigHandler(context *gin.Context) {
 		return
 	}
 
-	envs, err := rH.usecases.GetProjectConfig(project)
+	config, err := rH.usecases.GetProjectConfig(project)
 
 	if err != nil {
 		rH.handleError(context, err)
 		return
 	}
 
-	context.JSON(200, success(envs))
+	context.JSON(200, success(config))
 }
 
 func (rH RoutesHandler) updateProjectConfigHandler(context *gin.Context) {
+	project := rH.getProject(context)
 
+	if project == nil {
+		return
+	}
+
+	var configRequest request.UpdateConfigRequest
+
+	if err := context.ShouldBindJSON(&configRequest); err != nil {
+		rH.handleError(context, e.Wrap(ErrFormValidation))
+		return
+	}
+
+	err := rH.usecases.UpdateProjectConfig(project, configRequest)
+
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(project))
 }

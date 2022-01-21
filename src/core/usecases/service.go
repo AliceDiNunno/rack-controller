@@ -90,3 +90,31 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 	}
 	return i.serviceRepository.CreateService(&service)
 }
+
+func (i interactor) GetServiceConfig(service *domain.Service) ([]clusterDomain.Environment, *e.Error) {
+	if service == nil {
+		return nil, e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	config, err := i.configRepository.GetConfigByObjectID(service.ID)
+
+	if err != nil {
+		return nil, err.Append(domain.UnableToGetConfig)
+	}
+
+	return config, nil
+}
+
+func (i interactor) UpdateServiceConfig(service *domain.Service, envVariables []clusterDomain.Environment) *e.Error {
+	if service == nil {
+		return e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	err := i.configRepository.SetConfig(service.ID, envVariables)
+
+	if err != nil {
+		return err.Append(domain.UnableToUpdateConfig)
+	}
+
+	return nil
+}
