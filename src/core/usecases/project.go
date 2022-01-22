@@ -136,10 +136,23 @@ func (i interactor) UpdateProjectConfig(project *domain.Project, envVariables []
 	return nil
 }
 
-func (i interactor) EnvVariablesForProject(project *domain.Project) map[string]string {
-	return map[string]string{
+func (i interactor) ConfigForProject(project *domain.Project) map[string]string {
+	config := map[string]string{
 		"LISTEN_ADDRESS": "0.0.0.0",
 		"PORT":           "80",
 		"TLS_ENABLED":    "false",
 	}
+
+	if project == nil {
+		return config
+	}
+
+	projectConfig, err := i.configRepository.GetConfigByObjectID(project.ID)
+	if err == nil {
+		for _, env := range projectConfig {
+			config[env.Name] = env.Value
+		}
+	}
+
+	return config
 }

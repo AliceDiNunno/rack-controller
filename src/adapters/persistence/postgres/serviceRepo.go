@@ -44,9 +44,21 @@ func (s serviceRepo) GetServiceByName(projectID uuid.UUID, name string) (*domain
 	return &serviceToReturn, nil
 }
 
-func (s serviceRepo) CreateService(service *domain.Service) *e.Error {
-	if err := s.db.Create(service).Error; err != nil {
-		return e.Wrap(err)
+func (s serviceRepo) CreateOrUpdateService(service *domain.Service) *e.Error {
+	serviceToSave := serviceFromDomain(*service)
+
+	if err := s.db.Where("project_id = ? AND display_name = ?", service.ProjectID, service.DisplayName).First(&serviceToSave).Error; err != nil {
+		if err != gorm.ErrRecordNotFound {
+			return e.Wrap(err)
+		}
+
+		if err := s.db.Create(&serviceToSave).Error; err != nil {
+			return e.Wrap(err)
+		}
+	} else {
+		if err := s.db.Save(&serviceToSave).Error; err != nil {
+			return e.Wrap(err)
+		}
 	}
 
 	return nil
@@ -60,6 +72,18 @@ func (s serviceRepo) UpdateService(service *domain.Service) *e.Error {
 	return nil
 }
 
+func (s serviceRepo) GetServiceById(projectID uuid.UUID, ID uuid.UUID) (*domain.Service, *e.Error) {
+	var service Service
+
+	if err := s.db.Where("project_id = ? AND id = ?", projectID, ID).First(&service).Error; err != nil {
+		return nil, e.Wrap(err)
+	}
+
+	serviceToReturn := serviceToDomain(service)
+
+	return &serviceToReturn, nil
+}
+
 func servicesToDomain(services []Service) []domain.Service {
 	servicesSlice := []domain.Service{}
 
@@ -70,12 +94,23 @@ func servicesToDomain(services []Service) []domain.Service {
 	return servicesSlice
 }
 
+func serviceFromDomain(service domain.Service) Service {
+	return Service{
+		ID:          service.ID,
+		DisplayName: service.DisplayName,
+		ImageName:   service.ImageName,
+		Slug:        service.Slug,
+		ProjectID:   service.ProjectID,
+	}
+}
+
 func serviceToDomain(service Service) domain.Service {
 	return domain.Service{
 		ID:          service.ID,
 		DisplayName: service.DisplayName,
-		ProjectID:   service.ProjectID,
+		ImageName:   service.ImageName,
 		Slug:        service.Slug,
+		ProjectID:   service.ProjectID,
 	}
 }
 

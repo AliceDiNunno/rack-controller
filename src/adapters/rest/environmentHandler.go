@@ -45,6 +45,10 @@ func (rH RoutesHandler) getEnvironment(c *gin.Context) *domain.Environment {
 	return environment
 }
 
+func (rH RoutesHandler) getEnvironmentHandler(context *gin.Context) {
+
+}
+
 func (rH RoutesHandler) getEnvironmentsHandler(context *gin.Context) {
 	project := rH.getProject(context)
 	if project == nil {

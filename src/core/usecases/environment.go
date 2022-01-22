@@ -104,14 +104,30 @@ func (i interactor) UpdateEnvironmentConfig(env *domain.Environment, envVariable
 	return nil
 }
 
-func (i interactor) EnvVariablesForEnvironment(environment *domain.Environment) map[string]string {
-	if environment.DisplayName == "prod" || environment.DisplayName == "production" {
-		return map[string]string{
-			"ENV": "production",
-		}
+func (i interactor) ConfigForEnvironment(environment *domain.Environment) map[string]string {
+	if environment == nil {
+		return nil
+	}
+
+	config := map[string]string{}
+
+	if environment.DisplayName == "production" {
+		config["ENV"] = "production"
 	} else {
-		return map[string]string{
-			"ENV": "development",
+		config["ENV"] = "development"
+	}
+
+	envConfig, err := i.configRepository.GetConfigByObjectID(environment.ID)
+
+	if err != nil {
+		return config
+	}
+
+	for _, envVar := range envConfig {
+		if envVar.Value != "" && envVar.Name != "" && envVar.Name != "ENV" {
+			config[envVar.Name] = envVar.Value
 		}
 	}
+
+	return config
 }

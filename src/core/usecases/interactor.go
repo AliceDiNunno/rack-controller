@@ -51,8 +51,9 @@ type EnvironmentRepository interface {
 type ServiceRepository interface {
 	GetServices(ID uuid.UUID) ([]domain.Service, *e.Error)
 	GetServiceByName(ID uuid.UUID, name string) (*domain.Service, *e.Error)
-	CreateService(s *domain.Service) *e.Error
+	CreateOrUpdateService(s *domain.Service) *e.Error
 	UpdateService(s *domain.Service) *e.Error
+	GetServiceById(projectID uuid.UUID, ID uuid.UUID) (*domain.Service, *e.Error)
 }
 
 type ConfigRepository interface {

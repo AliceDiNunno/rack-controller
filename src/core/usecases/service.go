@@ -6,6 +6,7 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/google/uuid"
 )
 
 func (i interactor) GetServices(project *domain.Project) ([]domain.Service, *e.Error) {
@@ -16,6 +17,16 @@ func (i interactor) GetServices(project *domain.Project) ([]domain.Service, *e.E
 	}
 
 	return services, nil
+}
+
+func (i interactor) GetServiceById(project *domain.Project, id uuid.UUID) (*domain.Service, *e.Error) {
+	service, err := i.serviceRepository.GetServiceById(project.ID, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return service, nil
 }
 
 func (i interactor) CreateService(project *domain.Project, r *request.ServiceCreationRequest) *e.Error {
@@ -31,13 +42,19 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 		return e.Wrap(domain.ErrServiceNameIsEmpty)
 	}
 
-	service := domain.Service{
-		DisplayName: r.Name,
-		ProjectID:   project.ID,
-		Slug:        slugify(r.Name),
-	}
+	var service *domain.Service
 
-	service.Initialize()
+	service, err := i.serviceRepository.GetServiceByName(project.ID, r.Name)
+
+	if err != nil || service == nil {
+		service := &domain.Service{
+			DisplayName: r.Name,
+			ProjectID:   project.ID,
+			Slug:        slugify(r.Name),
+		}
+
+		service.Initialize()
+	}
 
 	environments, err := i.environmentRepository.GetEnvironments(project.ID)
 
@@ -52,43 +69,45 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 		Environment:    nil,
 		ConfigMaps:     nil,
 		Secrets:        nil,
-		Replicas:       3,
+		Replicas:       4,
 		Memory:         0,
 		CPU:            0,
 	}
 
 	for _, env := range environments {
+		config := []clusterDomain.Environment{}
 
-		envVars := []clusterDomain.Environment{}
-
-		projectEnvVars := i.EnvVariablesForProject(project)
-		for k, v := range projectEnvVars {
-			envVars = append(envVars, clusterDomain.Environment{
+		projectConfig := i.ConfigForProject(project)
+		for k, v := range projectConfig {
+			config = append(config, clusterDomain.Environment{
 				Name:  k,
 				Value: v,
 			})
 		}
 
-		environmentEnvVars := i.EnvVariablesForEnvironment(&env)
-		for k, v := range environmentEnvVars {
-			envVars = append(envVars, clusterDomain.Environment{
+		environmentConfig := i.ConfigForEnvironment(&env)
+		for k, v := range environmentConfig {
+			config = append(config, clusterDomain.Environment{
 				Name:  k,
 				Value: v,
 			})
 		}
 
-		newDeployment.Environment = envVars
+		serviceConfig := i.ConfigForService(service)
+		for k, v := range serviceConfig {
+			config = append(config, clusterDomain.Environment{
+				Name:  k,
+				Value: v,
+			})
+		}
+
+		newDeployment.Environment = config
 
 		err := i.kubeClient.CreateDeployment(env.Slug, newDeployment)
 		spew.Dump(err)
 	}
 
-	env, err := i.serviceRepository.GetServiceByName(project.ID, r.Name)
-
-	if err == nil && env != nil {
-		return i.serviceRepository.UpdateService(&service)
-	}
-	return i.serviceRepository.CreateService(&service)
+	return i.serviceRepository.CreateOrUpdateService(service)
 }
 
 func (i interactor) GetServiceConfig(service *domain.Service) ([]clusterDomain.Environment, *e.Error) {
@@ -117,4 +136,28 @@ func (i interactor) UpdateServiceConfig(service *domain.Service, envVariables []
 	}
 
 	return nil
+}
+
+func (i interactor) ConfigForService(service *domain.Service) map[string]string {
+	if service == nil {
+		return nil
+	}
+
+	config := map[string]string{
+		"SERVICE_NAME": service.DisplayName,
+		"SERVICE_SLUG": service.Slug,
+		"API_PREFIX":   service.Slug,
+	}
+
+	userConfig, err := i.configRepository.GetConfigByObjectID(service.ID)
+
+	if err != nil {
+		return config
+	}
+
+	for _, env := range userConfig {
+		config[env.Name] = env.Value
+	}
+
+	return config
 }

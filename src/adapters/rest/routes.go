@@ -44,6 +44,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	environmentEndpoint.POST("", routesHandler.createEnvironmentHandler)
 
 	selectedEnvironmentEndpoint := environmentEndpoint.Group("/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
+	selectedEnvironmentEndpoint.GET("", routesHandler.getEnvironmentHandler)
 	selectedEnvironmentEndpoint.DELETE("", routesHandler.deleteEnvironmentHandler)
 	selectedEnvironmentEndpoint.GET("/config", routesHandler.getEnvironmentConfigHandler)
 	selectedEnvironmentEndpoint.POST("/config", routesHandler.updateEnvironmentConfigHandler)
@@ -59,7 +60,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceEndpoint.GET("/config", routesHandler.getServiceConfigHandler)
 	selectedServiceEndpoint.POST("/config", routesHandler.updateServiceConfigHandler)
 
-	serviceSelectedEnvironmentEndpoint := selectedServiceEndpoint.Group("/environment/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
+	serviceSelectedEnvironmentEndpoint := selectedServiceEndpoint.Group("/environments/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
 	serviceSelectedEnvironmentEndpoint.GET("", routesHandler.getServiceOfEnvironmentHandler)
 
 	serviceInstanceEndpoint := serviceSelectedEnvironmentEndpoint.Group("/instances")
@@ -70,5 +71,4 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceInstanceEndpoint.DELETE("", routesHandler.deleteServiceInstanceHandler)
 	selectedServiceInstanceEndpoint.GET("/logs", routesHandler.getServiceInstanceLogsHandler)
 	selectedServiceInstanceEndpoint.GET("/events", routesHandler.getServiceInstanceEventsHandler)
-
 }

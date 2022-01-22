@@ -34,6 +34,7 @@ type Usecases interface {
 
 	CreateService(project *domain.Project, r *request.ServiceCreationRequest) *e.Error
 	GetServices(project *domain.Project) ([]domain.Service, *e.Error)
+	GetServiceById(project *domain.Project, id uuid.UUID) (*domain.Service, *e.Error)
 	GetServiceConfig(service *domain.Service) ([]clusterDomain.Environment, *e.Error)
 	UpdateServiceConfig(service *domain.Service, envVariables []clusterDomain.Environment) *e.Error
 }

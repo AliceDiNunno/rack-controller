@@ -10,7 +10,6 @@ import (
 
 func (rH RoutesHandler) getServiceMiddleware(context *gin.Context) {
 	project := rH.getProject(context)
-	environment := rH.getEnvironment(context)
 
 	user := rH.getAuthenticatedUser(context)
 	if user == nil {
@@ -24,7 +23,7 @@ func (rH RoutesHandler) getServiceMiddleware(context *gin.Context) {
 		return
 	}
 
-	service, err := rH.usecases.GetServiceById(project, environment, id)
+	service, err := rH.usecases.GetServiceById(project, id)
 
 	if err != nil {
 		rH.handleError(context, err.Append(domain.ErrEnvironmentNotFound))
@@ -100,13 +99,13 @@ func (rH RoutesHandler) updateServiceHandler(context *gin.Context) {
 }
 
 func (rH RoutesHandler) getServiceConfigHandler(context *gin.Context) {
-	environment := rH.getEnvironment(context)
+	service := rH.getService(context)
 
-	if environment == nil {
+	if service == nil {
 		return
 	}
 
-	config, err := rH.usecases.GetEnvironmentConfig(environment)
+	config, err := rH.usecases.GetServiceConfig(service)
 
 	if err != nil {
 		rH.handleError(context, err)
@@ -130,7 +129,7 @@ func (rH RoutesHandler) updateServiceConfigHandler(context *gin.Context) {
 		return
 	}
 
-	err := rH.usecases.UpdateEnvironmentConfig(service, configRequest)
+	err := rH.usecases.UpdateServiceConfig(service, configRequest)
 
 	if err != nil {
 		rH.handleError(context, err)

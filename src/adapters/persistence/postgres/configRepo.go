@@ -38,6 +38,7 @@ func (c configRepo) SetConfig(ID uuid.UUID, config []clusterDomain.Environment) 
 		return e.Wrap(err)
 	}
 
+	//TODO: replace with bulk insert and update if key already exists instead of delete and insert
 	for _, env := range config {
 		objectToSave := Config{
 			ID:             uuid.New(),
