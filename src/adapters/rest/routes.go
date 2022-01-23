@@ -55,7 +55,6 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 
 	selectedServiceEndpoint := serviceEndpoint.Group("/:service_id", routesHandler.getServiceMiddleware)
 	selectedServiceEndpoint.GET("", routesHandler.getServiceHandler)
-	selectedServiceEndpoint.PUT("", routesHandler.updateServiceHandler)
 	selectedServiceEndpoint.DELETE("", routesHandler.deleteServiceHandler)
 	selectedServiceEndpoint.GET("/config", routesHandler.getServiceConfigHandler)
 	selectedServiceEndpoint.POST("/config", routesHandler.updateServiceConfigHandler)
