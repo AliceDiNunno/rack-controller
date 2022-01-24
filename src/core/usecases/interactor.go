@@ -4,6 +4,7 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
+	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases/kubernetes"
 	"github.com/google/uuid"
@@ -66,6 +67,20 @@ type EventDispatcher interface {
 	RegisterForEvent(event string, callback func(interface{}))
 }
 
+type LogCollection interface {
+	AddLog(log *logDomain.LogEntry) error
+
+	ProjectVersions(project *domain.Project) ([]string, error)
+	ProjectEnvironments(project *domain.Project) ([]string, error)
+	ProjectServers(project *domain.Project) ([]string, error)
+	ProjectGroupingIds(project *domain.Project) ([]string, error)
+	IsGroupExist(project *domain.Project, groupingId string) bool
+
+	FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, error)
+	FindGroupOccurrences(project *domain.Project, groupingId string) ([]string, error)
+	FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, error)
+}
+
 type interactor struct {
 	userRepository         UserRepository
 	userTokenRepository    UserTokenRepository
@@ -74,12 +89,14 @@ type interactor struct {
 	environmentRepository  EnvironmentRepository
 	serviceRepository      ServiceRepository
 	configRepository       ConfigRepository
+	logCollection          LogCollection
 	dispatcher             EventDispatcher
 	kubeClient             kubernetes.Kubernetes
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
 	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository, c ConfigRepository,
+	lC LogCollection,
 	kube kubernetes.Kubernetes, ed EventDispatcher) interactor {
 	return interactor{
 		userRepository:         u,
@@ -89,6 +106,7 @@ func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepo
 		environmentRepository:  env,
 		serviceRepository:      s,
 		configRepository:       c,
+		logCollection:          lC,
 		dispatcher:             ed,
 		kubeClient:             kube,
 	}

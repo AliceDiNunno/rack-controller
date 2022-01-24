@@ -6,6 +6,7 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/config"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
+	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/google/uuid"
 )
@@ -37,4 +38,14 @@ type Usecases interface {
 	GetServiceById(project *domain.Project, id uuid.UUID) (*domain.Service, *e.Error)
 	GetServiceConfig(service *domain.Service) ([]clusterDomain.Environment, *e.Error)
 	UpdateServiceConfig(service *domain.Service, envVariables []clusterDomain.Environment) *e.Error
+
+	PushNewLogEntry(id uuid.UUID, request *request.ItemCreationRequest) *e.Error
+
+	GetProjectsEvent(user *domain.User, project *domain.Project) ([]string, *e.Error)
+	FetchGroupingIdContent(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error)
+	FetchGroupingIdOccurrences(project *domain.Project, groupingId string) ([]string, *e.Error)
+	FetchGroupOccurrence(project *domain.Project, groupingId string, occurrence string) (*logDomain.LogEntry, *e.Error)
+	FetchProjectVersions(project *domain.Project) ([]string, *e.Error)
+	FetchProjectEnvironments(project *domain.Project) ([]string, *e.Error)
+	FetchProjectServers(project *domain.Project) ([]string, *e.Error)
 }

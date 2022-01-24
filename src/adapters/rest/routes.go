@@ -69,5 +69,25 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceInstanceEndpoint.GET("", routesHandler.getServiceInstanceHandler)
 	selectedServiceInstanceEndpoint.DELETE("", routesHandler.deleteServiceInstanceHandler)
 	selectedServiceInstanceEndpoint.GET("/logs", routesHandler.getServiceInstanceLogsHandler)
-	selectedServiceInstanceEndpoint.GET("/events", routesHandler.getServiceInstanceEventsHandler)
+
+	//Events routes
+
+	serviceEvents := selectedServiceInstanceEndpoint.Group("/events")
+	environmentGroup := serviceEvents.Group("/environment")
+	environmentGroup.GET("", routesHandler.GetEnvironmentHandler) //Getting all declared environments for a project
+
+	versionGroup := serviceEvents.Group("/version")
+	versionGroup.GET("", routesHandler.GetVersionHandler) //Getting all declared version for a project
+
+	serverGroup := serviceEvents.Group("/server")
+	serverGroup.GET("", routesHandler.GetServerHandler) //Getting all declared servers for a project
+
+	itemsGroup := serviceEvents.Group("/items")
+	itemsGroup.GET("", routesHandler.GetItemsHandler)           //Search all grouping ids
+	r.POST("/:project_id/items", routesHandler.PushLogsHandler) //Push a log
+
+	logsGroup := itemsGroup.Group("/:grouping_id", routesHandler.fetchingGroupMiddleware())
+	logsGroup.GET("/occurrences", routesHandler.GetLogsOccurencesHandler)       //Getting a specific log id
+	logsGroup.GET("/", routesHandler.SearchLogsInGroupingHandler)               //Search all logs (corresponding to a grouping ID)
+	logsGroup.GET("/occurrences/:log_id", routesHandler.GetSpecificLogsHandler) //Getting a specific log id
 }
