@@ -23,4 +23,6 @@ var (
 
 	UnableToGetConfig    = errors.New("unable to get config")
 	UnableToUpdateConfig = errors.New("unable to update config")
+
+	ErrNotImplemented = errors.New("not implemented")
 )

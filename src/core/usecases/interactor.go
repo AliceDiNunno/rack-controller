@@ -68,17 +68,17 @@ type EventDispatcher interface {
 }
 
 type LogCollection interface {
-	AddLog(log *logDomain.LogEntry) error
+	AddLog(log *logDomain.LogEntry) *e.Error
 
-	ProjectVersions(project *domain.Project) ([]string, error)
-	ProjectEnvironments(project *domain.Project) ([]string, error)
-	ProjectServers(project *domain.Project) ([]string, error)
-	ProjectGroupingIds(project *domain.Project) ([]string, error)
+	ProjectVersions(project *domain.Project) ([]string, *e.Error)
+	ProjectEnvironments(project *domain.Project) ([]string, *e.Error)
+	ProjectServers(project *domain.Project) ([]string, *e.Error)
+	ProjectGroupingIds(project *domain.Project) ([]string, *e.Error)
 	IsGroupExist(project *domain.Project, groupingId string) bool
 
-	FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, error)
-	FindGroupOccurrences(project *domain.Project, groupingId string) ([]string, error)
-	FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, error)
+	FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error)
+	FindGroupOccurrences(project *domain.Project, groupingId string) ([]string, *e.Error)
+	FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, *e.Error)
 }
 
 type interactor struct {

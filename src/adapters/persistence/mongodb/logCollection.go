@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/google/uuid"
@@ -117,12 +118,12 @@ func logEntryFromDomain(entry *logDomain.LogEntry) *logEntry {
 	}
 }
 
-func (c logCollection) AddLog(entry *logDomain.LogEntry) error {
+func (c logCollection) AddLog(entry *logDomain.LogEntry) *e.Error {
 	entryFromDomain := logEntryFromDomain(entry)
 
 	_, err := c.collection.InsertOne(context.Background(), entryFromDomain)
 
-	return err
+	return e.Wrap(err)
 }
 
 func interfaceArrayToStringArray(input []interface{}) []string {
@@ -133,47 +134,47 @@ func interfaceArrayToStringArray(input []interface{}) []string {
 	return output
 }
 
-func (c logCollection) ProjectVersions(project *domain.Project) ([]string, error) {
+func (c logCollection) ProjectVersions(project *domain.Project) ([]string, *e.Error) {
 	result, err := c.collection.Distinct(context.Background(), "version", bson.M{"project": project.ID})
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	return interfaceArrayToStringArray(result), nil
 }
 
-func (c logCollection) ProjectEnvironments(project *domain.Project) ([]string, error) {
+func (c logCollection) ProjectEnvironments(project *domain.Project) ([]string, *e.Error) {
 	result, err := c.collection.Distinct(context.Background(), "environment", bson.M{"project": project.ID})
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	return interfaceArrayToStringArray(result), nil
 }
 
-func (c logCollection) ProjectServers(project *domain.Project) ([]string, error) {
+func (c logCollection) ProjectServers(project *domain.Project) ([]string, *e.Error) {
 	result, err := c.collection.Distinct(context.Background(), "hostname", bson.M{"project": project.ID})
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	return interfaceArrayToStringArray(result), nil
 }
 
-func (c logCollection) ProjectGroupingIds(project *domain.Project) ([]string, error) {
+func (c logCollection) ProjectGroupingIds(project *domain.Project) ([]string, *e.Error) {
 	result, err := c.collection.Distinct(context.Background(), "grouping_id", bson.M{"project": project.ID})
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	return interfaceArrayToStringArray(result), nil
 }
 
-func (c logCollection) FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, error) {
+func (c logCollection) FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error) {
 	var entry logEntry
 
 	queryOptions := options.FindOneOptions{}
@@ -183,13 +184,13 @@ func (c logCollection) FindLastEntryForGroup(project *domain.Project, groupingId
 	err := c.collection.FindOne(context.Background(), bson.D{{"grouping_id", groupingId}}, &queryOptions).Decode(&entry)
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	return logEntryToDomain(&entry), nil
 }
 
-func (c logCollection) FindGroupOccurrences(project *domain.Project, groupingId string) ([]string, error) {
+func (c logCollection) FindGroupOccurrences(project *domain.Project, groupingId string) ([]string, *e.Error) {
 	var entries []string
 
 	queryOptions := options.FindOptions{}
@@ -199,7 +200,7 @@ func (c logCollection) FindGroupOccurrences(project *domain.Project, groupingId 
 	cur, err := c.collection.Find(context.Background(), bson.D{{"grouping_id", groupingId}}, &queryOptions)
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	for cur.Next(context.Background()) {
@@ -212,7 +213,7 @@ func (c logCollection) FindGroupOccurrences(project *domain.Project, groupingId 
 
 	return entries, nil
 }
-func (c logCollection) FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, error) {
+func (c logCollection) FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, *e.Error) {
 	var entry logEntry
 
 	queryOptions := options.FindOneOptions{}
@@ -222,7 +223,7 @@ func (c logCollection) FindGroupOccurrence(project *domain.Project, groupingId s
 	id, err := primitive.ObjectIDFromHex(occurenceId)
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	search := bson.D{{"grouping_id", groupingId}, {"_id", id}}
@@ -230,7 +231,7 @@ func (c logCollection) FindGroupOccurrence(project *domain.Project, groupingId s
 	err = c.collection.FindOne(context.Background(), search, &queryOptions).Decode(&entry)
 
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err)
 	}
 
 	return logEntryToDomain(&entry), nil

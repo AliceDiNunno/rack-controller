@@ -41,7 +41,7 @@ type Usecases interface {
 
 	PushNewLogEntry(id uuid.UUID, request *request.ItemCreationRequest) *e.Error
 
-	GetProjectsEvent(user *domain.User, project *domain.Project) ([]string, *e.Error)
+	GetProjectsEvent(user *userDomain.User, project *domain.Project) ([]string, *e.Error)
 	FetchGroupingIdContent(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error)
 	FetchGroupingIdOccurrences(project *domain.Project, groupingId string) ([]string, *e.Error)
 	FetchGroupOccurrence(project *domain.Project, groupingId string, occurrence string) (*logDomain.LogEntry, *e.Error)

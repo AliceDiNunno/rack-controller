@@ -3,6 +3,7 @@ package usecases
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/config"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/AliceDiNunno/rack-controller/src/security/crypto"
@@ -19,7 +20,8 @@ func (i interactor) GetUserById(id uuid.UUID) (*userDomain.User, *e.Error) {
 
 func (i interactor) CreateUser(user *userDomain.UserCreationRequest) *e.Error {
 	//TODO create initial user should call this function
-	panic("implement me")
+
+	return e.Wrap(domain.ErrNotImplemented)
 }
 
 func (i interactor) CreateInitialUser(initialUser *config.InitialUserConfig) *e.Error {
