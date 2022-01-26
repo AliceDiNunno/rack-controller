@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"github.com/AliceDiNunno/go-logger/src/core/domain/request"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	eventDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
@@ -26,7 +26,7 @@ func (i interactor) FetchProjectServers(project *domain.Project) ([]string, *e.E
 }
 
 func (i interactor) PushNewLogEntry(id uuid.UUID, request *request.ItemCreationRequest) *e.Error {
-	project, error := i.projectRepo.FindByIdAndKey(id, request.ProjectKey)
+	project, error := i.projectRepository.GetProjectByIDAndKey(id, request.ProjectKey)
 
 	if error != nil || project == nil {
 		return e.Wrap(domain.ErrProjectNotFound)
@@ -72,17 +72,18 @@ func (i interactor) FetchGroupOccurrence(project *domain.Project, groupingId str
 	return i.logCollection.FindGroupOccurrence(project, groupingId, occurrence)
 }
 
-func (i interactor) FetchProjectEnvironments(project *domain.Project) ([]string, error) {
+func (i interactor) FetchProjectEnvironments(project *domain.Project) ([]string, *e.Error) {
 	environments, err := i.logCollection.ProjectEnvironments(project)
 
 	if err != nil {
-		return nil, eventDomain.ErrUnableToFindEvents
+		return nil, e.Wrap(eventDomain.ErrUnableToFindEvents)
 	}
 
 	return environments, nil
 }
 
-func (i interactor) GetProjectsContent(user *userDomain.User, project *domain.Project) ([]string, *e.Error) {
+//TODO: should be groupings not events
+func (i interactor) GetProjectsEvent(user *userDomain.User, project *domain.Project) ([]string, *e.Error) {
 	if user == nil {
 		return nil, e.Wrap(domain.ErrUserIsNil)
 	}

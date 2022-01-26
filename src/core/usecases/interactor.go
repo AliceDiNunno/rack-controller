@@ -38,6 +38,7 @@ type ProjectRepository interface {
 	GetProjectsByUserId(userId uuid.UUID) ([]domain.Project, *e.Error)
 	GetProjectByName(name string) (*domain.Project, *e.Error)
 	GetProjectByID(ID uuid.UUID) (*domain.Project, *e.Error)
+	GetProjectByIDAndKey(id uuid.UUID, key uuid.UUID) (*domain.Project, *e.Error)
 	GetProjectBySlug(slug string) (*domain.Project, *e.Error)
 	CreateProject(project domain.Project) *e.Error
 }

@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/AliceDiNunno/go-logger/src/core/domain"
+	domain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/google/uuid"
 )
 

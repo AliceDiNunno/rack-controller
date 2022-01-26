@@ -7,6 +7,8 @@ type Project struct {
 	DisplayName string
 	Slug        string
 
+	EventKey uuid.UUID
+
 	UserID uuid.UUID
 }
 

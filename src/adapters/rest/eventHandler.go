@@ -1,8 +1,8 @@
 package rest
 
 import (
-	"github.com/AliceDiNunno/go-logger/src/core/domain/request"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"

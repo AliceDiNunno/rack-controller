@@ -21,6 +21,8 @@ type Project struct {
 	Environments []Environment
 	Services     []Service
 
+	EventKey uuid.UUID
+
 	UserID uuid.UUID
 }
 
@@ -79,6 +81,18 @@ func (p projectRepo) CreateProject(project domain.Project) *e.Error {
 	return nil
 }
 
+func (p projectRepo) GetProjectByIDAndKey(id uuid.UUID, key uuid.UUID) (*domain.Project, *e.Error) {
+	var project Project
+	err := p.db.Where("id = ? AND key = ?", id, key).First(&project).Error
+	if err != nil {
+		return nil, e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	projectDomain := projectToDomain(project)
+
+	return &projectDomain, nil
+}
+
 func projectsToDomain(project []Project) []domain.Project {
 	projectSlice := []domain.Project{}
 
@@ -95,6 +109,7 @@ func projectFromDomain(project domain.Project) Project {
 		DisplayName: project.DisplayName,
 		UserID:      project.UserID,
 		Slug:        project.Slug,
+		EventKey:    project.EventKey,
 	}
 }
 
@@ -104,6 +119,7 @@ func projectToDomain(project Project) domain.Project {
 		DisplayName: project.DisplayName,
 		UserID:      project.UserID,
 		Slug:        project.Slug,
+		EventKey:    project.EventKey,
 	}
 }
 

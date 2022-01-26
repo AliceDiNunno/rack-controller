@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher/dispatcher"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/mongodb"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/postgres"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest"
 	"github.com/AliceDiNunno/rack-controller/src/config"
@@ -23,6 +24,7 @@ func main() {
 	dbConfig := config.LoadGormConfiguration()
 	initialUserConfiguration := config.LoadInitialUserConfiguration()
 	clusterConfig := config.LoadClusterConfig()
+	mongoConfig := config.LoadMongodbConfiguration()
 
 	//Loading the kubernetes client
 	kubernetesInstance, err := kubernetes.LoadInstance(clusterConfig)
@@ -30,6 +32,11 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	mongo := mongodb.StartMongodbDatabase(mongoConfig)
+	var logCollection usecases.LogCollection
+
+	logCollection = mongodb.NewLogCollectionRepo(mongo)
 
 	//Loading the database
 	db := postgres.StartGormDatabase(dbConfig)
@@ -54,6 +61,7 @@ func main() {
 	var eventDispatcher = dispatcher.NewDispatcher()
 	usecasesHandler := usecases.NewInteractor(userRepo, tokenRepo, jwtSignatureRepo,
 		projectRepo, environmentRepo, serviceRepo, configRepo,
+		logCollection,
 		kubernetesInstance, eventDispatcher)
 
 	if initialUserConfiguration != nil {
