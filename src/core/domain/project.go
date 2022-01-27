@@ -14,4 +14,5 @@ type Project struct {
 
 func (p *Project) Initialize() {
 	p.ID = uuid.New()
+	p.EventKey = uuid.New()
 }
