@@ -49,6 +49,7 @@ func (i interactor) CreateEnvironment(project *domain.Project, r *request.Enviro
 
 	environment.Initialize()
 
+	//TODO: wrap kubernetes error in domain error
 	err := i.kubeClient.CreateNamespace(environment.Slug)
 
 	if err != nil {

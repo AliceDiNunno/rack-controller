@@ -96,10 +96,6 @@ func (rH RoutesHandler) getProjectHandler(context *gin.Context) {
 	context.JSON(200, success(project))
 }
 
-func (rH RoutesHandler) updateProjectHandler(context *gin.Context) {
-
-}
-
 func (rH RoutesHandler) deleteProjectHandler(context *gin.Context) {
 
 }

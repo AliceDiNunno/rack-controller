@@ -30,10 +30,10 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	projectsEndpoint := authenticatedEndpoint.Group("/projects")
 	projectsEndpoint.GET("", routesHandler.getProjectsHandler)
 	projectsEndpoint.POST("", routesHandler.createProjectHandler)
+	projectsEndpoint.POST("/events", routesHandler.PushLogsHandler) //Push a log
 
 	selectedProjectEndpoint := projectsEndpoint.Group("/:project_id", routesHandler.getProjectMiddleware)
 	selectedProjectEndpoint.GET("", routesHandler.getProjectHandler)
-	selectedProjectEndpoint.PUT("", routesHandler.updateProjectHandler)
 	selectedProjectEndpoint.DELETE("", routesHandler.deleteProjectHandler)
 	selectedProjectEndpoint.GET("/config", routesHandler.getProjectConfigHandler)
 	selectedProjectEndpoint.POST("/config", routesHandler.updateProjectConfigHandler)
@@ -83,8 +83,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	serverGroup.GET("", routesHandler.GetServerHandler) //Getting all declared servers for a project
 
 	itemsGroup := serviceEvents.Group("/items")
-	itemsGroup.GET("", routesHandler.GetItemsHandler)           //Search all grouping ids
-	r.POST("/:project_id/items", routesHandler.PushLogsHandler) //Push a log
+	itemsGroup.GET("", routesHandler.GetItemsHandler) //Search all grouping ids
 
 	logsGroup := itemsGroup.Group("/:grouping_id", routesHandler.fetchingGroupMiddleware())
 	logsGroup.GET("/occurrences", routesHandler.GetLogsOccurencesHandler)       //Getting a specific log id
