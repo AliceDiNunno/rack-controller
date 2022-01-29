@@ -123,7 +123,11 @@ func (c logCollection) AddLog(entry *logDomain.LogEntry) *e.Error {
 
 	_, err := c.collection.InsertOne(context.Background(), entryFromDomain)
 
-	return e.Wrap(err)
+	if err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
 }
 
 func interfaceArrayToStringArray(input []interface{}) []string {

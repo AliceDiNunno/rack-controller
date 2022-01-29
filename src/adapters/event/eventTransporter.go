@@ -8,7 +8,6 @@ import (
 	domain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases"
 	"github.com/google/uuid"
-	"time"
 )
 
 type InternalEventTransporter struct {
@@ -17,8 +16,6 @@ type InternalEventTransporter struct {
 
 func (i InternalEventTransporter) PushNewLogEntry(id uuid.UUID, rqst *glc.ItemCreationRequest) *e.Error {
 	projectKey, err := uuid.Parse(rqst.ProjectKey)
-
-	println("PUSHING LOG ENTRY")
 
 	if err != nil {
 		return e.Wrap(errors.New("Failed to parse project key"))
@@ -29,26 +26,60 @@ func (i InternalEventTransporter) PushNewLogEntry(id uuid.UUID, rqst *glc.ItemCr
 
 		Identification: domain.LogIdentification{
 			Client: domain.LogClientIdentification{
-				UserID:    nil,
-				IPAddress: "",
+				UserID:    rqst.Identification.Client.UserID,
+				IPAddress: rqst.Identification.Client.IPAddress,
 			},
 			Deployment: domain.LogDeploymentIdentification{
-				Environment: "",
-				Version:     "",
+				Platform:    rqst.Identification.Deployment.Platform,
+				Source:      rqst.Identification.Deployment.Source,
+				Hostname:    rqst.Identification.Deployment.Hostname,
+				Environment: rqst.Identification.Deployment.Environment,
+				Version:     rqst.Identification.Deployment.Version,
 			},
 		},
-
 		Data: domain.LogData{
-			Message:   rqst.Data.Message,
-			Timestamp: time.Now(),
+			Timestamp:        rqst.Data.Timestamp,
+			GroupingID:       rqst.Data.GroupingID,
+			Fingerprint:      rqst.Data.Fingerprint,
+			Level:            rqst.Data.Level,
+			Trace:            tracebackFromClient(rqst.Data.Trace),
+			NestedTrace:      tracebacksFromClient(rqst.Data.NestedTrace),
+			Message:          rqst.Data.Message,
+			StatusCode:       rqst.Data.StatusCode,
+			AdditionalFields: rqst.Data.AdditionalFields,
 		},
 	})
 }
 
-func NewEventTransporter(usecases usecases.Usecases) *InternalEventTransporter {
-	receiver := InternalEventTransporter{
-		usecases: usecases,
+func tracebackFromClient(traceback *glc.Traceback) domain.Traceback {
+	var frames []domain.TracebackEntry
+
+	for _, frame := range traceback.Traceback {
+		frames = append(frames, domain.TracebackEntry{
+			Filename: frame.Filename,
+			Method:   frame.Method,
+			Line:     frame.Line,
+		})
 	}
 
-	return &receiver
+	return domain.Traceback{
+		Message:   traceback.Message,
+		Traceback: frames,
+	}
+}
+
+func tracebacksFromClient(tracebacks []*glc.Traceback) []domain.Traceback {
+	var result []domain.Traceback
+
+	for _, traceback := range tracebacks {
+		result = append(result, tracebackFromClient(traceback))
+	}
+
+	return result
+}
+
+func NewEventTransporter(usecases usecases.Usecases) *InternalEventTransporter {
+	return &InternalEventTransporter{
+		usecases: usecases,
+	}
 }
