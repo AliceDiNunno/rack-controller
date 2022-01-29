@@ -47,7 +47,7 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 	service, err := i.serviceRepository.GetServiceByName(project.ID, r.Name)
 
 	if err != nil || service == nil {
-		service := &domain.Service{
+		service = &domain.Service{
 			DisplayName: r.Name,
 			ProjectID:   project.ID,
 			Slug:        slugify(r.Name),
@@ -61,6 +61,8 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 	if err != nil {
 		return e.Wrap(domain.ErrUnableToCreateProject)
 	}
+
+	spew.Dump(service)
 
 	newDeployment := clusterDomain.DeploymentCreationRequest{
 		DeploymentName: service.Slug,

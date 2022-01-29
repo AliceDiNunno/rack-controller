@@ -3,6 +3,7 @@ module github.com/AliceDiNunno/rack-controller
 go 1.17
 
 require (
+	github.com/AliceDiNunno/go-logger-client v1.1.1
 	github.com/AliceDiNunno/go-nested-traced-error v1.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

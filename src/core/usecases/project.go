@@ -141,6 +141,8 @@ func (i interactor) ConfigForProject(project *domain.Project) map[string]string 
 		"LISTEN_ADDRESS": "0.0.0.0",
 		"PORT":           "80",
 		"TLS_ENABLED":    "false",
+		"PROJECT_ID":     project.ID.String(),
+		"EVENT_KEY":      project.EventKey.String(),
 	}
 
 	if project == nil {

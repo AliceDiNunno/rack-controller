@@ -83,7 +83,7 @@ func (p projectRepo) CreateProject(project domain.Project) *e.Error {
 
 func (p projectRepo) GetProjectByIDAndKey(id uuid.UUID, key uuid.UUID) (*domain.Project, *e.Error) {
 	var project Project
-	err := p.db.Where("id = ? AND key = ?", id, key).First(&project).Error
+	err := p.db.Where("id = ? AND event_key = ?", id, key).First(&project).Error
 	if err != nil {
 		return nil, e.Wrap(domain.ErrProjectNotFound)
 	}

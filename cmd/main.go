@@ -1,7 +1,9 @@
 package main
 
 import (
+	glc "github.com/AliceDiNunno/go-logger-client"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes"
+	eventAdapter "github.com/AliceDiNunno/rack-controller/src/adapters/event"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher/dispatcher"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/mongodb"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/postgres"
@@ -25,6 +27,7 @@ func main() {
 	initialUserConfiguration := config.LoadInitialUserConfiguration()
 	clusterConfig := config.LoadClusterConfig()
 	mongoConfig := config.LoadMongodbConfiguration()
+	logConfig := config.LoadEventConfiguration()
 
 	//Loading the kubernetes client
 	kubernetesInstance, err := kubernetes.LoadInstance(clusterConfig)
@@ -63,6 +66,10 @@ func main() {
 		projectRepo, environmentRepo, serviceRepo, configRepo,
 		logCollection,
 		kubernetesInstance, eventDispatcher)
+
+	internalEventTransporter := eventAdapter.NewEventTransporter(usecasesHandler)
+	receiver := glc.NewInternalTransporter(internalEventTransporter, logConfig)
+	glc.SetupHook(logConfig, receiver)
 
 	if initialUserConfiguration != nil {
 		err := usecasesHandler.CreateInitialUser(initialUserConfiguration)
