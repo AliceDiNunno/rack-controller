@@ -6,6 +6,7 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/response"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -56,6 +57,8 @@ func (rH RoutesHandler) createAuthTokenHandler(c *gin.Context) {
 		rH.handleError(c, e.Wrap(stderr).Append(ErrFormValidation))
 		return
 	}
+
+	spew.Dump(tokenRequest)
 
 	token, err := rH.usecases.CreateAuthToken(tokenRequest.ToDomain())
 

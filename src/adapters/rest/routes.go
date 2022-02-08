@@ -71,7 +71,6 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceInstanceEndpoint.GET("/logs", routesHandler.getServiceInstanceLogsHandler)
 
 	//Events routes
-
 	serviceEvents := selectedProjectEndpoint.Group("/events")
 	environmentGroup := serviceEvents.Group("/environment")
 	environmentGroup.GET("", routesHandler.GetEnvironmentHandler) //Getting all declared environments for a project
