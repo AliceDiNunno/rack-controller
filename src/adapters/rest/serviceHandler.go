@@ -46,7 +46,26 @@ func (rH RoutesHandler) getService(c *gin.Context) *domain.Service {
 }
 
 func (rH RoutesHandler) getServiceOfEnvironmentHandler(context *gin.Context) {
+	service := rH.getService(context)
 
+	if service == nil {
+		return
+	}
+
+	environment := rH.getEnvironment(context)
+
+	if environment == nil {
+		return
+	}
+
+	serviceOfEnvironment, err := rH.usecases.GetServiceOfEnvironment(service, environment)
+
+	if err != nil {
+		rH.handleError(context, err.Append(domain.ErrEnvironmentNotFound))
+		return
+	}
+
+	context.JSON(200, success(serviceOfEnvironment))
 }
 
 func (rH RoutesHandler) getServicesHandler(context *gin.Context) {

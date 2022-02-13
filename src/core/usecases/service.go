@@ -62,8 +62,6 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 		return e.Wrap(domain.ErrUnableToCreateProject)
 	}
 
-	spew.Dump(service)
-
 	newDeployment := clusterDomain.DeploymentCreationRequest{
 		DeploymentName: service.Slug,
 		ImageName:      r.ImageName,
@@ -124,6 +122,31 @@ func (i interactor) GetServiceConfig(service *domain.Service) ([]clusterDomain.E
 	}
 
 	return config, nil
+}
+
+func (i interactor) GetServiceOfEnvironment(service *domain.Service, environment *domain.Environment) (*domain.ServiceDetail, *e.Error) {
+	if service == nil {
+		return nil, e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	if environment == nil {
+		return nil, e.Wrap(domain.ErrEnvironmentNotFound)
+	}
+
+	serviceDetail := &domain.ServiceDetail{
+		Service: *service,
+	}
+
+	deployment, err := i.kubeClient.GetDeployment(environment.Slug, service.Slug)
+
+	if err != nil {
+		return nil, err.Append(domain.ErrUnableToGetService)
+	}
+
+	serviceDetail.RequestedInstances = int(deployment.Replicas)
+	serviceDetail.RunningInstances = int(deployment.AvailableReplicas)
+
+	return serviceDetail, nil
 }
 
 func (i interactor) UpdateServiceConfig(service *domain.Service, envVariables []clusterDomain.Environment) *e.Error {

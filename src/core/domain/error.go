@@ -19,10 +19,14 @@ var (
 	ErrEnvironmentAlreadyExistsWithThisName = errors.New("an environment already exists with this name")
 	ErrEnvironmentNotFound                  = errors.New("environment not found")
 
+	ErrUnableToGetService = errors.New("unable to get service")
 	ErrServiceNameIsEmpty = errors.New("service name is empty")
+	ErrServiceNotFound    = errors.New("service not found")
 
 	UnableToGetConfig    = errors.New("unable to get config")
 	UnableToUpdateConfig = errors.New("unable to update config")
+
+	ErrInstanceNotFound = errors.New("instance not found")
 
 	ErrNotImplemented = errors.New("not implemented")
 )

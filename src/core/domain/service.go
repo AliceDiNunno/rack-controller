@@ -12,6 +12,13 @@ type Service struct {
 	ProjectID uuid.UUID
 }
 
+type ServiceDetail struct {
+	Service
+
+	RequestedInstances int
+	RunningInstances   int
+}
+
 func (s *Service) Initialize() {
 	s.ID = uuid.New()
 }

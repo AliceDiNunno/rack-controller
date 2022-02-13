@@ -68,17 +68,17 @@ type EventDispatcher interface {
 	RegisterForEvent(event string, callback func(interface{}))
 }
 
-type LogCollection interface {
+type EventRepository interface {
 	AddLog(log *logDomain.LogEntry) *e.Error
 
-	ProjectVersions(project *domain.Project) ([]string, *e.Error)
-	ProjectEnvironments(project *domain.Project) ([]string, *e.Error)
-	ProjectServers(project *domain.Project) ([]string, *e.Error)
-	ProjectGroupingIds(project *domain.Project) ([]string, *e.Error)
+	ProjectVersions(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
+	ProjectEnvironments(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
+	ProjectServers(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
+	ProjectGroupingIds(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
 	IsGroupExist(project *domain.Project, groupingId string) bool
 
 	FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error)
-	FindGroupOccurrences(project *domain.Project, groupingId string) ([]string, *e.Error)
+	FindGroupOccurrences(project *domain.Project, groupingId string) ([]logDomain.LogEntry, *e.Error)
 	FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, *e.Error)
 }
 
@@ -90,14 +90,14 @@ type interactor struct {
 	environmentRepository  EnvironmentRepository
 	serviceRepository      ServiceRepository
 	configRepository       ConfigRepository
-	logCollection          LogCollection
+	logCollection          EventRepository
 	dispatcher             EventDispatcher
 	kubeClient             kubernetes.Kubernetes
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
 	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository, c ConfigRepository,
-	lC LogCollection,
+	lC EventRepository,
 	kube kubernetes.Kubernetes, ed EventDispatcher) interactor {
 	return interactor{
 		userRepository:         u,

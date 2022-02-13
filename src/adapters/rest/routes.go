@@ -22,6 +22,8 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	authenticationEndpoint.DELETE("/jwt", routesHandler.deleteJwtTokenHandler)
 
 	authenticatedEndpoint := r.Group("/", routesHandler.verifyAuthenticationMiddleware)
+	r.GET("/nodes", routesHandler.getNodesHandler)
+
 	profileEndpoint := authenticatedEndpoint.Group("/me")
 	profileEndpoint.GET("", routesHandler.getProfileHandler)
 	profileEndpoint.GET("/roles", routesHandler.getRolesHandler)
@@ -65,7 +67,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	serviceInstanceEndpoint := serviceSelectedEnvironmentEndpoint.Group("/instances")
 	serviceInstanceEndpoint.GET("", routesHandler.getServiceInstancesHandler)
 
-	selectedServiceInstanceEndpoint := serviceInstanceEndpoint.Group("/:instance_id", routesHandler.getServiceInstanceMiddleware)
+	selectedServiceInstanceEndpoint := serviceInstanceEndpoint.Group("/:instance_name", routesHandler.getServiceInstanceMiddleware)
 	selectedServiceInstanceEndpoint.GET("", routesHandler.getServiceInstanceHandler)
 	selectedServiceInstanceEndpoint.DELETE("", routesHandler.deleteServiceInstanceHandler)
 	selectedServiceInstanceEndpoint.GET("/logs", routesHandler.getServiceInstanceLogsHandler)
@@ -87,6 +89,6 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 
 	logsGroup := itemsGroup.Group("/:grouping_id", routesHandler.fetchingGroupMiddleware())
 	logsGroup.GET("/occurrences", routesHandler.GetLogsOccurencesHandler)       //Getting a specific log id
-	logsGroup.GET("/", routesHandler.SearchLogsInGroupingHandler)               //Search all logs (corresponding to a grouping ID)
+	logsGroup.GET("", routesHandler.SearchLogsInGroupingHandler)                //Search all logs (corresponding to a grouping ID)
 	logsGroup.GET("/occurrences/:log_id", routesHandler.GetSpecificLogsHandler) //Getting a specific log id
 }
