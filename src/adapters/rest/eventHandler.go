@@ -90,7 +90,7 @@ func (rH RoutesHandler) SearchLogsInGroupingHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, logs)
+	c.JSON(http.StatusOK, success(logs))
 }
 
 func (rH RoutesHandler) GetLogsOccurencesHandler(c *gin.Context) {
@@ -116,7 +116,7 @@ func (rH RoutesHandler) GetLogsOccurencesHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, logs)
+	c.JSON(http.StatusOK, success(logs))
 }
 
 func (rH RoutesHandler) GetSpecificLogsHandler(c *gin.Context) {
@@ -147,7 +147,7 @@ func (rH RoutesHandler) GetSpecificLogsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, logs)
+	c.JSON(http.StatusOK, success(logs))
 }
 
 func (rH RoutesHandler) GetServerHandler(c *gin.Context) {
@@ -168,7 +168,7 @@ func (rH RoutesHandler) GetServerHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, servers)
+	c.JSON(http.StatusOK, success(servers))
 }
 
 func (rH RoutesHandler) GetVersionHandler(c *gin.Context) {
@@ -189,7 +189,7 @@ func (rH RoutesHandler) GetVersionHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, versions)
+	c.JSON(http.StatusOK, success(versions))
 }
 
 func (rH RoutesHandler) GetEnvironmentHandler(c *gin.Context) {
@@ -210,7 +210,7 @@ func (rH RoutesHandler) GetEnvironmentHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, environments)
+	c.JSON(http.StatusOK, success(environments))
 }
 
 func (rH RoutesHandler) GetItemsHandler(c *gin.Context) {
@@ -231,5 +231,5 @@ func (rH RoutesHandler) GetItemsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, success(result))
 }
