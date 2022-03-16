@@ -90,7 +90,32 @@ func (rH RoutesHandler) getServiceInstanceHandler(context *gin.Context) {
 }
 
 func (rH RoutesHandler) deleteServiceInstanceHandler(context *gin.Context) {
+	service := rH.getService(context)
 
+	if service == nil {
+		return
+	}
+
+	environment := rH.getEnvironment(context)
+
+	if environment == nil {
+		return
+	}
+
+	instance := rH.getInstance(context)
+
+	if instance == nil {
+		return
+	}
+
+	err := rH.usecases.DeleteInstance(service, environment, instance)
+
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(nil))
 }
 
 func (rH RoutesHandler) getServiceInstanceEventsHandler(context *gin.Context) {

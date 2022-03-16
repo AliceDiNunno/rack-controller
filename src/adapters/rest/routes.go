@@ -22,7 +22,11 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	authenticationEndpoint.DELETE("/jwt", routesHandler.deleteJwtTokenHandler)
 
 	authenticatedEndpoint := r.Group("/", routesHandler.verifyAuthenticationMiddleware)
-	r.GET("/nodes", routesHandler.getNodesHandler)
+
+	nodeEndpoint := authenticatedEndpoint.Group("/nodes")
+	nodeEndpoint.GET("", routesHandler.getNodesHandler)
+	nodeEndpoint.GET("/:node_id", routesHandler.getSpecificNodeHandler)
+	nodeEndpoint.GET("/:node_id/instances", routesHandler.getSpecificNodeInstancesHandler)
 
 	profileEndpoint := authenticatedEndpoint.Group("/me")
 	profileEndpoint.GET("", routesHandler.getProfileHandler)
@@ -63,6 +67,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 
 	serviceSelectedEnvironmentEndpoint := selectedServiceEndpoint.Group("/environments/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
 	serviceSelectedEnvironmentEndpoint.GET("", routesHandler.getServiceOfEnvironmentHandler)
+	serviceSelectedEnvironmentEndpoint.POST("/restart", routesHandler.restartServiceHandler)
 
 	serviceInstanceEndpoint := serviceSelectedEnvironmentEndpoint.Group("/instances")
 	serviceInstanceEndpoint.GET("", routesHandler.getServiceInstancesHandler)
@@ -72,8 +77,11 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceInstanceEndpoint.DELETE("", routesHandler.deleteServiceInstanceHandler)
 	selectedServiceInstanceEndpoint.GET("/logs", routesHandler.getServiceInstanceLogsHandler)
 
-	//Events routes
+	//Domain and ingress endpoints
+	domainEndpoint := authenticatedEndpoint.Group("/domains")
+	domainEndpoint.GET("", routesHandler.GetDomainsHandler)
 
+	//Events routes
 	serviceEvents := selectedProjectEndpoint.Group("/events")
 	environmentGroup := serviceEvents.Group("/environment")
 	environmentGroup.GET("", routesHandler.GetEnvironmentHandler) //Getting all declared environments for a project

@@ -49,6 +49,7 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 	if err != nil || service == nil {
 		service = &domain.Service{
 			DisplayName: r.Name,
+			ImageName:   r.ImageName,
 			ProjectID:   project.ID,
 			Slug:        slugify(r.Name),
 		}
@@ -186,4 +187,51 @@ func (i interactor) ConfigForService(service *domain.Service) map[string]string 
 	}
 
 	return config
+}
+
+func (i interactor) RestartService(service *domain.Service) *e.Error {
+	if service == nil {
+		return e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	environments, err := i.environmentRepository.GetEnvironments(service.ProjectID)
+
+	if err != nil {
+		return err.Append(domain.ErrUnableToGetEnvironments)
+	}
+
+	for _, env := range environments {
+		err := i.kubeClient.RestartDeployment(env.Slug, service.Slug)
+
+		if err != nil {
+			return err.Append(domain.ErrUnableToRestartService)
+		}
+	}
+
+	return nil
+}
+
+func (i interactor) DeleteService(service *domain.Service) *e.Error {
+	if service == nil {
+		return e.Wrap(domain.ErrServiceNotFound)
+	}
+
+	environments, err := i.environmentRepository.GetEnvironments(service.ProjectID)
+
+	if err != nil {
+		return err.Append(domain.ErrUnableToGetEnvironments)
+	}
+
+	_ = environments
+
+	/*
+		for _, env := range environments {
+			err := i.kubeClient.DeleteDeployment(env.Slug, service.Slug)
+
+			if err != nil {
+				return err.Append(domain.ErrUnableToDeleteService)
+			}
+		}*/
+
+	return i.serviceRepository.DeleteService(service)
 }

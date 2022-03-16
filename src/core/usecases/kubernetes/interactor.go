@@ -24,6 +24,7 @@ type Kubernetes interface {
 	GetPods(namespace string) ([]clusterDomain.Pod, *e.Error)
 	GetPod(namespace string, podName string) (*clusterDomain.Pod, *e.Error)
 	GetPodLogs(namespace string, podName string) (string, *e.Error)
+	GetPodsOfANode(node string) ([]clusterDomain.Pod, *e.Error)
 	DeletePod(namespace string, podName string) *e.Error
 
 	CreateNamespace(namespace string) *e.Error

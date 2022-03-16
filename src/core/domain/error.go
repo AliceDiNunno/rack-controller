@@ -18,10 +18,13 @@ var (
 	ErrEnvironmentNameIsEmpty               = errors.New("environment name is empty")
 	ErrEnvironmentAlreadyExistsWithThisName = errors.New("an environment already exists with this name")
 	ErrEnvironmentNotFound                  = errors.New("environment not found")
+	ErrUnableToGetEnvironments              = errors.New("unable to get environments")
 
-	ErrUnableToGetService = errors.New("unable to get service")
-	ErrServiceNameIsEmpty = errors.New("service name is empty")
-	ErrServiceNotFound    = errors.New("service not found")
+	ErrUnableToGetService     = errors.New("unable to get service")
+	ErrServiceNameIsEmpty     = errors.New("service name is empty")
+	ErrServiceNotFound        = errors.New("service not found")
+	ErrUnableToRestartService = errors.New("unable to restart service")
+	ErrUnableToDeleteService  = errors.New("unable to delete service")
 
 	UnableToGetConfig    = errors.New("unable to get config")
 	UnableToUpdateConfig = errors.New("unable to update config")

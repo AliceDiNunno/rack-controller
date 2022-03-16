@@ -7,6 +7,7 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/ovhDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/google/uuid"
 )
@@ -43,6 +44,8 @@ type Usecases interface {
 	GetServiceById(project *domain.Project, id uuid.UUID) (*domain.Service, *e.Error)
 	GetServiceConfig(service *domain.Service) ([]clusterDomain.Environment, *e.Error)
 	UpdateServiceConfig(service *domain.Service, envVariables []clusterDomain.Environment) *e.Error
+	RestartService(service *domain.Service) *e.Error
+	DeleteService(service *domain.Service) *e.Error
 
 	//Events
 	PushNewLogEntry(id uuid.UUID, request *request.ItemCreationRequest) *e.Error
@@ -57,9 +60,15 @@ type Usecases interface {
 
 	//Instances
 	GetServiceInstances(service *domain.Service, environments *domain.Environment) ([]clusterDomain.Pod, *e.Error)
+	GetSpecificNodeInstances(id string) ([]clusterDomain.Pod, *e.Error)
 	GetInstanceLogs(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) (string, *e.Error)
 	GetInstanceByName(service *domain.Service, environment *domain.Environment, name string) (*clusterDomain.Pod, *e.Error)
+	DeleteInstance(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) interface{}
 
 	//Nodes
 	GetNodes() ([]clusterDomain.Node, *e.Error)
+	GetSpecificNode(id string) (*clusterDomain.Node, *e.Error)
+
+	//Domain names and ingress
+	GetDomainNames() ([]ovhDomain.DomainName, *e.Error)
 }

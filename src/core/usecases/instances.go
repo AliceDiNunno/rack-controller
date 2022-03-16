@@ -18,6 +18,16 @@ func (i interactor) GetServiceInstances(service *domain.Service, environments *d
 	return i.kubeClient.GetPodsOfADeployment(environments.Slug, service.Slug)
 }
 
+func (i interactor) GetSpecificNodeInstances(id string) ([]clusterDomain.Pod, *e.Error) {
+	_, err := i.GetSpecificNode(id)
+
+	if err != nil {
+		return nil, err.Append(clusterDomain.ErrNodeNotFound)
+	}
+
+	return i.kubeClient.GetPodsOfANode(id)
+}
+
 func (i interactor) GetInstanceByName(service *domain.Service, environment *domain.Environment, name string) (*clusterDomain.Pod, *e.Error) {
 	if service == nil {
 		return nil, e.Wrap(domain.ErrServiceNotFound)

@@ -4,6 +4,7 @@ import (
 	"context"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
+	"github.com/davecgh/go-spew/spew"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -56,6 +57,18 @@ func (k8s kubernetesInstance) GetDebugPods(namespace string) ([]corev1.Pod, *e.E
 
 func (k8s kubernetesInstance) GetPodsOfADeployment(namespace string, deployment string) ([]clusterDomain.Pod, *e.Error) {
 	pods, err := k8s.Client.CoreV1().Pods(namespace).List(context.Background(), v1.ListOptions{LabelSelector: "app = " + deployment})
+
+	if err != nil {
+		return nil, e.Wrap(err).Append(ErrUnableToGetRessource)
+	}
+
+	return podsToDomain(pods.Items), nil
+}
+
+func (k8s kubernetesInstance) GetPodsOfANode(node string) ([]clusterDomain.Pod, *e.Error) {
+	pods, err := k8s.Client.CoreV1().Pods("").List(context.Background(), v1.ListOptions{FieldSelector: "spec.nodeName=" + node})
+
+	spew.Dump(pods, err)
 
 	if err != nil {
 		return nil, e.Wrap(err).Append(ErrUnableToGetRessource)

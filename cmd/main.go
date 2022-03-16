@@ -5,12 +5,14 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes"
 	eventAdapter "github.com/AliceDiNunno/rack-controller/src/adapters/event"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/eventDispatcher/dispatcher"
-	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/mongodb"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/ip"
+	"github.com/AliceDiNunno/rack-controller/src/adapters/ovh"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/persistence/postgres"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest"
 	"github.com/AliceDiNunno/rack-controller/src/config"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases/events"
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	stdlog "log"
 )
@@ -26,24 +28,31 @@ func main() {
 	dbConfig := config.LoadGormConfiguration()
 	initialUserConfiguration := config.LoadInitialUserConfiguration()
 	clusterConfig := config.LoadClusterConfig()
-	mongoConfig := config.LoadMongodbConfiguration()
 	logConfig := config.LoadEventConfiguration()
+	ovhConfig := config.LoadOvhConfiguration()
 
 	//Loading the kubernetes client
 	kubernetesInstance, err := kubernetes.LoadInstance(clusterConfig)
+
+	//Loading the IP Collector
+	ipCollector := ip.NewIPCollector()
+
+	//Loading the OVH Client
+	ovhClient := ovh.NewOVHClient(ovhConfig)
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	mongo := mongodb.StartMongodbDatabase(mongoConfig)
-	var logCollection usecases.LogCollection
-
-	logCollection = mongodb.NewLogCollectionRepo(mongo)
+	var logCollection usecases.EventRepository
 
 	//Loading the database
 	db := postgres.StartGormDatabase(dbConfig)
 	err = db.AutoMigrate(
+		//Migrating event tables
+		&postgres.LogEntry{},
+		&postgres.Traceback{},
+		&postgres.TracebackEntry{},
 		//Migrating user tables
 		&postgres.User{}, &postgres.JwtSignature{}, &postgres.UserToken{},
 		//Migrating kubernetes-related tables
@@ -58,6 +67,7 @@ func main() {
 	projectRepo := postgres.NewProjectRepo(db)
 	environmentRepo := postgres.NewEnvironmentRepo(db)
 	serviceRepo := postgres.NewServiceRepo(db)
+	logCollection = postgres.NewEventsRepo(db)
 	configRepo := postgres.NewConfigRepo(db)
 
 	//Loading the event dispatcher
@@ -65,7 +75,7 @@ func main() {
 	usecasesHandler := usecases.NewInteractor(userRepo, tokenRepo, jwtSignatureRepo,
 		projectRepo, environmentRepo, serviceRepo, configRepo,
 		logCollection,
-		kubernetesInstance, eventDispatcher)
+		kubernetesInstance, eventDispatcher, ipCollector, ovhClient)
 
 	internalEventTransporter := eventAdapter.NewEventTransporter(usecasesHandler)
 	receiver := glc.NewInternalTransporter(internalEventTransporter, logConfig)
@@ -77,6 +87,8 @@ func main() {
 			log.Warning(err.Err.Error())
 		}
 	}
+
+	spew.Dump(ovhClient.GetDomains())
 
 	//Loading the rest api
 	restServer := rest.NewServer(globalConfiguration, ginConfiguration)

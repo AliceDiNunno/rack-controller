@@ -84,6 +84,16 @@ func (s serviceRepo) GetServiceById(projectID uuid.UUID, ID uuid.UUID) (*domain.
 	return &serviceToReturn, nil
 }
 
+func (s serviceRepo) DeleteService(service *domain.Service) *e.Error {
+	serviceToDelete := serviceFromDomain(*service)
+
+	if err := s.db.Delete(&serviceToDelete).Error; err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
+}
+
 func servicesToDomain(services []Service) []domain.Service {
 	servicesSlice := []domain.Service{}
 

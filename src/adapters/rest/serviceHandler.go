@@ -106,7 +106,18 @@ func (rH RoutesHandler) createServiceHandler(context *gin.Context) {
 }
 
 func (rH RoutesHandler) deleteServiceHandler(context *gin.Context) {
+	service := rH.getService(context)
+	if service == nil {
+		return
+	}
 
+	err := rH.usecases.DeleteService(service)
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(nil))
 }
 
 func (rH RoutesHandler) getServiceHandler(context *gin.Context) {
@@ -132,6 +143,24 @@ func (rH RoutesHandler) getServiceConfigHandler(context *gin.Context) {
 	}
 
 	context.JSON(200, success(config))
+}
+
+func (rH RoutesHandler) restartServiceHandler(context *gin.Context) {
+	print("Endpoint hit")
+	service := rH.getService(context)
+
+	if service == nil {
+		return
+	}
+
+	err := rH.usecases.RestartService(service)
+
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(service))
 }
 
 func (rH RoutesHandler) updateServiceConfigHandler(context *gin.Context) {

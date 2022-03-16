@@ -5,6 +5,7 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/ovhDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases/kubernetes"
 	"github.com/google/uuid"
@@ -56,6 +57,7 @@ type ServiceRepository interface {
 	CreateOrUpdateService(s *domain.Service) *e.Error
 	UpdateService(s *domain.Service) *e.Error
 	GetServiceById(projectID uuid.UUID, ID uuid.UUID) (*domain.Service, *e.Error)
+	DeleteService(service *domain.Service) *e.Error
 }
 
 type ConfigRepository interface {
@@ -82,6 +84,14 @@ type EventRepository interface {
 	FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, *e.Error)
 }
 
+type IpInformationCollector interface {
+	GetIP(ip string) (*domain.IpInformation, *e.Error)
+}
+
+type OvhClient interface {
+	GetDomains() ([]ovhDomain.DomainName, *e.Error)
+}
+
 type interactor struct {
 	userRepository         UserRepository
 	userTokenRepository    UserTokenRepository
@@ -93,12 +103,14 @@ type interactor struct {
 	logCollection          EventRepository
 	dispatcher             EventDispatcher
 	kubeClient             kubernetes.Kubernetes
+	ipCollector            IpInformationCollector
+	ovhClient              OvhClient
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
 	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository, c ConfigRepository,
 	lC EventRepository,
-	kube kubernetes.Kubernetes, ed EventDispatcher) interactor {
+	kube kubernetes.Kubernetes, ed EventDispatcher, iic IpInformationCollector, oc OvhClient) interactor {
 	return interactor{
 		userRepository:         u,
 		userTokenRepository:    ut,
@@ -110,5 +122,7 @@ func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepo
 		logCollection:          lC,
 		dispatcher:             ed,
 		kubeClient:             kube,
+		ipCollector:            iic,
+		ovhClient:              oc,
 	}
 }
