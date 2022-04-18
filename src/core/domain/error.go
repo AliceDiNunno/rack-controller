@@ -14,11 +14,13 @@ var (
 	ErrProjectWithSameNameAlreadyExists = errors.New("project with same name already exists")
 	ErrUserNotOwnerOfProject            = errors.New("user not owner of project")
 	ErrUnableToCreateProject            = errors.New("unable to create project")
+	ErrUnableToDeleteProject            = errors.New("unable to delete project")
 
 	ErrEnvironmentNameIsEmpty               = errors.New("environment name is empty")
 	ErrEnvironmentAlreadyExistsWithThisName = errors.New("an environment already exists with this name")
 	ErrEnvironmentNotFound                  = errors.New("environment not found")
 	ErrUnableToGetEnvironments              = errors.New("unable to get environments")
+	ErrUnableToDeleteEnvironment            = errors.New("unable to delete environment")
 
 	ErrUnableToGetService     = errors.New("unable to get service")
 	ErrServiceNameIsEmpty     = errors.New("service name is empty")

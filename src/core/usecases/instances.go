@@ -40,6 +40,22 @@ func (i interactor) GetInstanceByName(service *domain.Service, environment *doma
 	return i.kubeClient.GetPod(environment.Slug, name)
 }
 
+func (i interactor) DeleteInstance(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) *e.Error {
+	if service == nil {
+		return e.Wrap(domain.ErrServiceNotFound)
+	}
+
+	if environment == nil {
+		return e.Wrap(domain.ErrEnvironmentNotFound)
+	}
+
+	if instance == nil {
+		return e.Wrap(domain.ErrInstanceNotFound)
+	}
+
+	return i.kubeClient.DeletePod(environment.Slug, instance.Name)
+}
+
 func (i interactor) GetInstanceLogs(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) (string, *e.Error) {
 	if service == nil {
 		return "", e.Wrap(domain.ErrServiceNotFound)

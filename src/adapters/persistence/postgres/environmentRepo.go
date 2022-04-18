@@ -74,6 +74,16 @@ func (r environmentRepo) GetEnvironmentByID(projectID uuid.UUID, ID uuid.UUID) (
 	return &envToReturn, nil
 }
 
+func (r environmentRepo) DeleteEnvironment(env *domain.Environment) *e.Error {
+	environmentToDelete := environmentFromDomain(*env)
+
+	if err := r.db.Delete(&environmentToDelete).Error; err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
+}
+
 func environmentsToDomain(environment []Environment) []domain.Environment {
 	environmentSlice := []domain.Environment{}
 
@@ -86,6 +96,15 @@ func environmentsToDomain(environment []Environment) []domain.Environment {
 
 func environmentToDomain(environment Environment) domain.Environment {
 	return domain.Environment{
+		ID:          environment.ID,
+		DisplayName: environment.DisplayName,
+		ProjectId:   environment.ProjectId,
+		Slug:        environment.Slug,
+	}
+}
+
+func environmentFromDomain(environment domain.Environment) Environment {
+	return Environment{
 		ID:          environment.ID,
 		DisplayName: environment.DisplayName,
 		ProjectId:   environment.ProjectId,

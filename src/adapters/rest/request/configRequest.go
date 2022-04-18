@@ -1,7 +1,3 @@
 package request
 
-import (
-	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
-)
-
-type UpdateConfigRequest []clusterDomain.Environment
+type UpdateConfigData map[string]interface{}

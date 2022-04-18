@@ -29,6 +29,7 @@ type Usecases interface {
 	GetProjectByID(user *userDomain.User, id uuid.UUID) (*domain.Project, *e.Error)
 	GetProjectConfig(project *domain.Project) ([]clusterDomain.Environment, *e.Error)
 	UpdateProjectConfig(project *domain.Project, envVariables []clusterDomain.Environment) *e.Error
+	DeleteProject(project *domain.Project) *e.Error
 
 	//Environments
 	CreateEnvironment(project *domain.Project, r *request.EnvironmentCreationRequest) *e.Error
@@ -36,6 +37,7 @@ type Usecases interface {
 	GetEnvironmentByID(project *domain.Project, id uuid.UUID) (*domain.Environment, *e.Error)
 	GetEnvironmentConfig(env *domain.Environment) ([]clusterDomain.Environment, *e.Error)
 	UpdateEnvironmentConfig(env *domain.Environment, envVariables []clusterDomain.Environment) *e.Error
+	DeleteEnvironment(env *domain.Environment) *e.Error
 
 	//Services
 	CreateService(project *domain.Project, r *request.ServiceCreationRequest) *e.Error
@@ -63,7 +65,7 @@ type Usecases interface {
 	GetSpecificNodeInstances(id string) ([]clusterDomain.Pod, *e.Error)
 	GetInstanceLogs(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) (string, *e.Error)
 	GetInstanceByName(service *domain.Service, environment *domain.Environment, name string) (*clusterDomain.Pod, *e.Error)
-	DeleteInstance(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) interface{}
+	DeleteInstance(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) *e.Error
 
 	//Nodes
 	GetNodes() ([]clusterDomain.Node, *e.Error)

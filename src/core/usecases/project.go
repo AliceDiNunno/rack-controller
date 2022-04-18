@@ -158,3 +158,30 @@ func (i interactor) ConfigForProject(project *domain.Project) map[string]string 
 
 	return config
 }
+
+func (i interactor) DeleteProject(project *domain.Project) *e.Error {
+	if project == nil {
+		return e.Wrap(domain.ErrProjectNotFound)
+	}
+
+	environments, err := i.GetEnvironments(project)
+
+	if err != nil {
+		return err.Append(domain.ErrUnableToDeleteProject)
+	}
+
+	for _, environment := range environments {
+		err = i.DeleteEnvironment(&environment)
+		if err != nil {
+			return err.Append(domain.ErrUnableToDeleteProject)
+		}
+	}
+
+	err = i.projectRepository.DeleteProject(project)
+
+	if err != nil {
+		return err.Append(domain.ErrUnableToDeleteProject)
+	}
+
+	return nil
+}

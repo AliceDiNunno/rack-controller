@@ -93,6 +93,16 @@ func (p projectRepo) GetProjectByIDAndKey(id uuid.UUID, key uuid.UUID) (*domain.
 	return &projectDomain, nil
 }
 
+func (p projectRepo) DeleteProject(project *domain.Project) *e.Error {
+	projectToDelete := projectFromDomain(*project)
+
+	if err := p.db.Delete(&projectToDelete).Error; err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
+}
+
 func projectsToDomain(project []Project) []domain.Project {
 	projectSlice := []domain.Project{}
 

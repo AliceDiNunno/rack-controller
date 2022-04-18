@@ -21,6 +21,14 @@ func (k8s kubernetesInstance) CreateNamespace(namespace string) *e.Error {
 	return nil
 }
 
+func (k8s kubernetesInstance) DeleteNamespace(slug string) *e.Error {
+	err := k8s.Client.CoreV1().Namespaces().Delete(context.Background(), slug, v1.DeleteOptions{})
+	if err != nil {
+		return e.Wrap(err)
+	}
+	return nil
+}
+
 func (k8s kubernetesInstance) GetNamespaces() ([]string, *e.Error) {
 	namespaces, err := k8s.Client.CoreV1().Namespaces().List(context.Background(), v1.ListOptions{})
 

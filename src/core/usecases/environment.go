@@ -132,3 +132,17 @@ func (i interactor) ConfigForEnvironment(environment *domain.Environment) map[st
 
 	return config
 }
+
+func (i interactor) DeleteEnvironment(env *domain.Environment) *e.Error {
+	if env == nil {
+		return e.Wrap(domain.ErrEnvironmentNotFound)
+	}
+
+	err := i.kubeClient.DeleteNamespace(env.Slug)
+
+	if err != nil {
+		return err.Append(domain.ErrUnableToDeleteEnvironment)
+	}
+
+	return i.environmentRepository.DeleteEnvironment(env)
+}

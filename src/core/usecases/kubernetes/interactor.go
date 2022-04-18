@@ -42,4 +42,5 @@ type Kubernetes interface {
 	CreateSecret(namespace string, request clusterDomain.SecretCreationRequest) *e.Error
 	UpdateSecret(namespace string, name string, request clusterDomain.SecretUpdateRequest) *e.Error
 	DeleteSecret(namespace string, name string) *e.Error
+	DeleteNamespace(slug string) *e.Error
 }

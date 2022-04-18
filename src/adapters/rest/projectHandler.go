@@ -4,6 +4,7 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -97,7 +98,18 @@ func (rH RoutesHandler) getProjectHandler(context *gin.Context) {
 }
 
 func (rH RoutesHandler) deleteProjectHandler(context *gin.Context) {
+	project := rH.getProject(context)
+	if project == nil {
+		return
+	}
 
+	err := rH.usecases.DeleteProject(project)
+	if err != nil {
+		rH.handleError(context, err)
+		return
+	}
+
+	context.JSON(200, success(nil))
 }
 
 func (rH RoutesHandler) getProjectConfigHandler(context *gin.Context) {
@@ -124,19 +136,20 @@ func (rH RoutesHandler) updateProjectConfigHandler(context *gin.Context) {
 		return
 	}
 
-	var configRequest request.UpdateConfigRequest
+	var configRequest request.UpdateRequest
 
 	if err := context.ShouldBindJSON(&configRequest); err != nil {
 		rH.handleError(context, e.Wrap(ErrFormValidation))
 		return
 	}
 
-	err := rH.usecases.UpdateProjectConfig(project, configRequest)
+	env := clusterDomain.EnvironmentListFromMap(configRequest.Data)
+	err := rH.usecases.UpdateProjectConfig(project, env)
 
 	if err != nil {
 		rH.handleError(context, err)
 		return
 	}
 
-	context.JSON(200, success(project))
+	context.JSON(200, success(env))
 }

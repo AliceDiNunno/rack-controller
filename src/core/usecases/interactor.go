@@ -42,6 +42,7 @@ type ProjectRepository interface {
 	GetProjectByIDAndKey(id uuid.UUID, key uuid.UUID) (*domain.Project, *e.Error)
 	GetProjectBySlug(slug string) (*domain.Project, *e.Error)
 	CreateProject(project domain.Project) *e.Error
+	DeleteProject(project *domain.Project) *e.Error
 }
 
 type EnvironmentRepository interface {
@@ -49,6 +50,7 @@ type EnvironmentRepository interface {
 	GetEnvironmentByName(projectID uuid.UUID, name string) (*domain.Environment, *e.Error)
 	GetEnvironmentByID(projectID uuid.UUID, ID uuid.UUID) (*domain.Environment, *e.Error)
 	CreateEnvironment(environment *domain.Environment) *e.Error
+	DeleteEnvironment(env *domain.Environment) *e.Error
 }
 
 type ServiceRepository interface {
