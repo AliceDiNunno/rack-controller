@@ -18,5 +18,7 @@ func LoadEventConfiguration() GoLoggerClient.ClientConfiguration {
 		Key:         RequireEnvString("EVENT_KEY"),
 		Environment: env,
 		Version:     version,
+
+		RemoveFieldsFromDebugOutput: false,
 	}
 }

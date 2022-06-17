@@ -9,27 +9,27 @@ import (
 	"github.com/google/uuid"
 )
 
-func (rH RoutesHandler) getProjectMiddleware(context *gin.Context) {
-	user := rH.getAuthenticatedUser(context)
+func (rH RoutesHandler) getProjectMiddleware(c *gin.Context) {
+	user := rH.getAuthenticatedUser(c)
 	if user == nil {
 		return
 	}
 
-	id, stderr := uuid.Parse(context.Param("project_id"))
+	id, stderr := uuid.Parse(c.Param("project_id"))
 
 	if stderr != nil {
-		rH.handleError(context, e.Wrap(ErrUrlValidation))
+		rH.handleError(c, e.Wrap(ErrUrlValidation))
 		return
 	}
 
 	project, err := rH.usecases.GetProjectByID(user, id)
 
 	if err != nil {
-		rH.handleError(context, err.Append(domain.ErrProjectNotFound))
+		rH.handleError(c, err.Append(domain.ErrProjectNotFound))
 		return
 	}
 
-	context.Set("project", project)
+	c.Set("project", project)
 }
 
 func (rH RoutesHandler) getProject(c *gin.Context) *domain.Project {
@@ -44,76 +44,76 @@ func (rH RoutesHandler) getProject(c *gin.Context) *domain.Project {
 	return project
 }
 
-func (rH RoutesHandler) getProjectsHandler(context *gin.Context) {
-	user := rH.getAuthenticatedUser(context)
+func (rH RoutesHandler) getProjectsHandler(c *gin.Context) {
+	user := rH.getAuthenticatedUser(c)
 
 	if user == nil {
-		rH.handleError(context, e.Wrap(ErrUnauthorized))
+		rH.handleError(c, e.Wrap(ErrUnauthorized))
 		return
 	}
 
 	projects, err := rH.usecases.GetUserProjects(user)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(projects))
+	rH.handleSuccess(c, projects)
 }
 
-func (rH RoutesHandler) createProjectHandler(context *gin.Context) {
-	user := rH.getAuthenticatedUser(context)
+func (rH RoutesHandler) createProjectHandler(c *gin.Context) {
+	user := rH.getAuthenticatedUser(c)
 
 	if user == nil {
-		rH.handleError(context, e.Wrap(ErrUnauthorized))
+		rH.handleError(c, e.Wrap(ErrUnauthorized))
 		return
 	}
 
 	var creationRequest request.CreateProjectRequest
 
-	if err := context.ShouldBindJSON(&creationRequest); err != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+	if err := c.ShouldBindJSON(&creationRequest); err != nil {
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
 	project, err := rH.usecases.CreateProject(user, creationRequest)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(201, success(project))
+	rH.handleSuccess(c, project)
 }
 
-func (rH RoutesHandler) getProjectHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) getProjectHandler(c *gin.Context) {
+	project := rH.getProject(c)
 
 	if project == nil {
 		return
 	}
 
-	context.JSON(200, success(project))
+	rH.handleSuccess(c, project)
 }
 
-func (rH RoutesHandler) deleteProjectHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) deleteProjectHandler(c *gin.Context) {
+	project := rH.getProject(c)
 	if project == nil {
 		return
 	}
 
 	err := rH.usecases.DeleteProject(project)
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(nil))
+	rH.handleSuccess(c, nil)
 }
 
-func (rH RoutesHandler) getProjectConfigHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) getProjectConfigHandler(c *gin.Context) {
+	project := rH.getProject(c)
 
 	if project == nil {
 		return
@@ -122,15 +122,15 @@ func (rH RoutesHandler) getProjectConfigHandler(context *gin.Context) {
 	config, err := rH.usecases.GetProjectConfig(project)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(config))
+	rH.handleSuccess(c, config)
 }
 
-func (rH RoutesHandler) updateProjectConfigHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) updateProjectConfigHandler(c *gin.Context) {
+	project := rH.getProject(c)
 
 	if project == nil {
 		return
@@ -138,8 +138,8 @@ func (rH RoutesHandler) updateProjectConfigHandler(context *gin.Context) {
 
 	var configRequest request.UpdateRequest
 
-	if err := context.ShouldBindJSON(&configRequest); err != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+	if err := c.ShouldBindJSON(&configRequest); err != nil {
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
@@ -147,9 +147,9 @@ func (rH RoutesHandler) updateProjectConfigHandler(context *gin.Context) {
 	err := rH.usecases.UpdateProjectConfig(project, env)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(env))
+	rH.handleSuccess(c, env)
 }

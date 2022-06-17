@@ -4,9 +4,7 @@ import (
 	"errors"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"net/http"
-	"os"
 	"runtime"
 	"strings"
 )
@@ -65,28 +63,6 @@ func codeForError(err error) int {
 		return http.StatusUnauthorized
 	}
 	return http.StatusInternalServerError
-}
-
-func (rH RoutesHandler) handleError(c *gin.Context, err *e.Error) {
-	var depth = 2
-	errName := getFunctionName(depth) + ": " + err.Err.Error()
-	code := codeForError(err.Err)
-
-	fields := log.Fields{
-		"code": code,
-		"ip":   c.ClientIP(),
-		"path": c.Request.RequestURI,
-		"err":  &err,
-	}
-
-	log.WithFields(fields).Error(errName)
-	hostname, _ := os.Hostname()
-	c.AbortWithStatusJSON(code, Status{
-		Success: false,
-		Message: err.Err.Error(),
-		Data:    nil,
-		Host:    hostname,
-	})
 }
 
 func (rH RoutesHandler) endpointNotFound(c *gin.Context) {

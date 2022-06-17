@@ -28,6 +28,11 @@ var (
 	ErrUnableToRestartService = errors.New("unable to restart service")
 	ErrUnableToDeleteService  = errors.New("unable to delete service")
 
+	ErrAddonNotFound                       = errors.New("addon not found")
+	ErrUnableToCreateAddon                 = errors.New("unable to create addon")
+	ErrAServiceCanOnlyHaveOnePostgresAddon = errors.New("a service can only have one postgres addon")
+	ErrUnknownAddonType                    = errors.New("unknown addon type")
+
 	UnableToGetConfig    = errors.New("unable to get config")
 	UnableToUpdateConfig = errors.New("unable to update config")
 

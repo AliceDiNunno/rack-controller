@@ -8,29 +8,29 @@ import (
 	"github.com/google/uuid"
 )
 
-func (rH RoutesHandler) getProjectEnvironmentsMiddleware(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) getProjectEnvironmentsMiddleware(c *gin.Context) {
+	project := rH.getProject(c)
 
-	user := rH.getAuthenticatedUser(context)
+	user := rH.getAuthenticatedUser(c)
 	if user == nil {
 		return
 	}
 
-	id, stderr := uuid.Parse(context.Param("environment_id"))
+	id, stderr := uuid.Parse(c.Param("environment_id"))
 
 	if stderr != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
 	environment, err := rH.usecases.GetEnvironmentByID(project, id)
 
 	if err != nil {
-		rH.handleError(context, err.Append(domain.ErrEnvironmentNotFound))
+		rH.handleError(c, err.Append(domain.ErrEnvironmentNotFound))
 		return
 	}
 
-	context.Set("environment", environment)
+	c.Set("environment", environment)
 }
 
 func (rH RoutesHandler) getEnvironment(c *gin.Context) *domain.Environment {
@@ -45,50 +45,50 @@ func (rH RoutesHandler) getEnvironment(c *gin.Context) *domain.Environment {
 	return environment
 }
 
-func (rH RoutesHandler) getEnvironmentHandler(context *gin.Context) {
+func (rH RoutesHandler) getEnvironmentHandler(c *gin.Context) {
 
 }
 
-func (rH RoutesHandler) getEnvironmentsHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) getEnvironmentsHandler(c *gin.Context) {
+	project := rH.getProject(c)
 	if project == nil {
 		return
 	}
 
 	environments, err := rH.usecases.GetEnvironments(project)
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(environments))
+	rH.handleSuccess(c, environments)
 }
 
-func (rH RoutesHandler) createEnvironmentHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) createEnvironmentHandler(c *gin.Context) {
+	project := rH.getProject(c)
 	if project == nil {
 		return
 	}
 
 	var environment request.EnvironmentCreationRequest
-	stderr := context.BindJSON(&environment)
+	stderr := c.BindJSON(&environment)
 	if stderr != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
 	err := rH.usecases.CreateEnvironment(project, &environment)
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(201, success(environment))
+	rH.handleSuccess(c, environment)
 }
 
-func (rH RoutesHandler) deleteEnvironmentHandler(context *gin.Context) {
+func (rH RoutesHandler) deleteEnvironmentHandler(c *gin.Context) {
 	print("DELENV: start")
-	environment := rH.getEnvironment(context)
+	environment := rH.getEnvironment(c)
 	if environment == nil {
 		return
 	}
@@ -97,16 +97,15 @@ func (rH RoutesHandler) deleteEnvironmentHandler(context *gin.Context) {
 	err := rH.usecases.DeleteEnvironment(environment)
 	if err != nil {
 		print("DELENV: error " + err.Err.Error())
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	print("DELENV: success")
-	context.JSON(200, success(nil))
+	rH.handleSuccess(c, nil)
 }
 
-func (rH RoutesHandler) getEnvironmentConfigHandler(context *gin.Context) {
-	environment := rH.getEnvironment(context)
+func (rH RoutesHandler) getEnvironmentConfigHandler(c *gin.Context) {
+	environment := rH.getEnvironment(c)
 
 	if environment == nil {
 		return
@@ -115,15 +114,15 @@ func (rH RoutesHandler) getEnvironmentConfigHandler(context *gin.Context) {
 	config, err := rH.usecases.GetEnvironmentConfig(environment)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(config))
+	rH.handleSuccess(c, config)
 }
 
-func (rH RoutesHandler) updateEnvironmentConfigHandler(context *gin.Context) {
-	environment := rH.getEnvironment(context)
+func (rH RoutesHandler) updateEnvironmentConfigHandler(c *gin.Context) {
+	environment := rH.getEnvironment(c)
 
 	if environment == nil {
 		return
@@ -131,17 +130,17 @@ func (rH RoutesHandler) updateEnvironmentConfigHandler(context *gin.Context) {
 
 	var configRequest request.UpdateConfigData
 
-	if err := context.ShouldBindJSON(&configRequest); err != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+	if err := c.ShouldBindJSON(&configRequest); err != nil {
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 	/*
 		err := rH.usecases.UpdateEnvironmentConfig(environment, configRequest)
 
 		if err != nil {
-			rH.handleError(context, err)
+			rH.handleError(c, err)
 			return
 		}*/
 
-	context.JSON(200, success(environment))
+	rH.handleSuccess(c, environment)
 }

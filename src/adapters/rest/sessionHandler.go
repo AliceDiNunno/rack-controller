@@ -7,7 +7,6 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func (rH RoutesHandler) verifyAuthenticationMiddleware(c *gin.Context) {
@@ -68,7 +67,7 @@ func (rH RoutesHandler) createAuthTokenHandler(c *gin.Context) {
 		AccessToken: token,
 	}
 
-	c.JSON(http.StatusCreated, success(tokenResponse))
+	rH.handleSuccess(c, tokenResponse)
 }
 
 func (rH RoutesHandler) createJwtTokenHandler(c *gin.Context) {
@@ -90,7 +89,7 @@ func (rH RoutesHandler) createJwtTokenHandler(c *gin.Context) {
 		JwtToken: token,
 	}
 
-	c.JSON(http.StatusCreated, success(jwtResponse))
+	rH.handleSuccess(c, jwtResponse)
 }
 
 func (rH RoutesHandler) deleteJwtTokenHandler(c *gin.Context) {

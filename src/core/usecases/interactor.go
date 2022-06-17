@@ -4,7 +4,7 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
-	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
+	eventDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/ovhDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/usecases/kubernetes"
@@ -73,17 +73,23 @@ type EventDispatcher interface {
 }
 
 type EventRepository interface {
-	AddLog(log *logDomain.LogEntry) *e.Error
+	AddEvent(event *eventDomain.Event) *e.Error
+	AddOccurrence(occurrence *eventDomain.EventOccurrence) *e.Error
 
-	ProjectVersions(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
-	ProjectEnvironments(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
-	ProjectServers(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
-	ProjectGroupingIds(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
+	ProjectVersions(project *domain.Project) ([]eventDomain.Event, *e.Error)
+	ProjectEnvironments(project *domain.Project) ([]eventDomain.Event, *e.Error)
+	ProjectServers(project *domain.Project) ([]eventDomain.Event, *e.Error)
+	ProjectGroupingIds(project *domain.Project) ([]eventDomain.Event, *e.Error)
 	IsGroupExist(project *domain.Project, groupingId string) bool
 
-	FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error)
-	FindGroupOccurrences(project *domain.Project, groupingId string) ([]logDomain.LogEntry, *e.Error)
-	FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, *e.Error)
+	FindLastEntryForGroup(project *domain.Project, groupingId string) (*eventDomain.Event, *e.Error)
+	FindGroupOccurrences(project *domain.Project, groupingId string) ([]eventDomain.Event, *e.Error)
+	FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*eventDomain.Event, *e.Error)
+}
+
+type AddonRepository interface {
+	GetAddons(service *domain.Service) ([]domain.Addon, *e.Error)
+	GetAddonById(service *domain.Service, id uuid.UUID) (*domain.Addon, *e.Error)
 }
 
 type IpInformationCollector interface {
@@ -102,7 +108,8 @@ type interactor struct {
 	environmentRepository  EnvironmentRepository
 	serviceRepository      ServiceRepository
 	configRepository       ConfigRepository
-	logCollection          EventRepository
+	addonRepository        AddonRepository
+	eventCollection        EventRepository
 	dispatcher             EventDispatcher
 	kubeClient             kubernetes.Kubernetes
 	ipCollector            IpInformationCollector
@@ -110,8 +117,8 @@ type interactor struct {
 }
 
 func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepository,
-	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository, c ConfigRepository,
-	lC EventRepository,
+	repo ProjectRepository, env EnvironmentRepository, s ServiceRepository, c ConfigRepository, a AddonRepository,
+	eR EventRepository,
 	kube kubernetes.Kubernetes, ed EventDispatcher, iic IpInformationCollector, oc OvhClient) interactor {
 	return interactor{
 		userRepository:         u,
@@ -121,7 +128,8 @@ func NewInteractor(u UserRepository, ut UserTokenRepository, js JwtSignatureRepo
 		environmentRepository:  env,
 		serviceRepository:      s,
 		configRepository:       c,
-		logCollection:          lC,
+		addonRepository:        a,
+		eventCollection:        eR,
 		dispatcher:             ed,
 		kubeClient:             kube,
 		ipCollector:            iic,

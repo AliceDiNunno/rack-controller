@@ -1,7 +1,6 @@
 package event
 
 import (
-	"errors"
 	glc "github.com/AliceDiNunno/go-logger-client"
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	request "github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
@@ -15,21 +14,16 @@ type InternalEventTransporter struct {
 }
 
 func (i InternalEventTransporter) PushNewLogEntry(id uuid.UUID, rqst *glc.ItemCreationRequest) *e.Error {
-	projectKey, err := uuid.Parse(rqst.ProjectKey)
+	print("PUSH NEW LOG ENTRY")
 
-	if err != nil {
-		return e.Wrap(errors.New("Failed to parse project key"))
-	}
-
-	return i.usecases.PushNewLogEntry(id, &request.ItemCreationRequest{
-		ProjectKey: projectKey,
-
-		Identification: domain.LogIdentification{
-			Client: domain.LogClientIdentification{
-				UserID:    rqst.Identification.Client.UserID,
+	return i.usecases.PushNewEvent(id, &request.ItemCreationRequest{
+		ProjectKey: rqst.ProjectKey,
+		Identification: request.LogIdentification{
+			Client: request.LogClientIdentification{
+				UserID:    nil, //TODO
 				IPAddress: rqst.Identification.Client.IPAddress,
 			},
-			Deployment: domain.LogDeploymentIdentification{
+			Deployment: request.LogDeploymentIdentification{
 				Platform:    rqst.Identification.Deployment.Platform,
 				Source:      rqst.Identification.Deployment.Source,
 				Hostname:    rqst.Identification.Deployment.Hostname,
@@ -37,16 +31,17 @@ func (i InternalEventTransporter) PushNewLogEntry(id uuid.UUID, rqst *glc.ItemCr
 				Version:     rqst.Identification.Deployment.Version,
 			},
 		},
-		Data: domain.LogData{
+		Data: request.LogData{
 			Timestamp:        rqst.Data.Timestamp,
 			GroupingID:       rqst.Data.GroupingID,
 			Fingerprint:      rqst.Data.Fingerprint,
 			Level:            rqst.Data.Level,
-			Trace:            tracebackFromClient(rqst.Data.Trace),
-			NestedTrace:      tracebacksFromClient(rqst.Data.NestedTrace),
+			Trace:            nil, //TODO
+			NestedTrace:      nil, //TODO
 			Message:          rqst.Data.Message,
+			Module:           rqst.Data.Module,
 			StatusCode:       rqst.Data.StatusCode,
-			AdditionalFields: rqst.Data.AdditionalFields,
+			AdditionalFields: nil, //TODO
 		},
 	})
 }

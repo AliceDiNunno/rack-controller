@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/AliceDiNunno/rack-controller/src/adapters/ip"
 	"github.com/gin-gonic/gin"
 	"time"
 )
@@ -8,11 +9,25 @@ import (
 type HealthData struct {
 	Running bool
 	Date    time.Time
+	IP      string
 }
 
 func (rH RoutesHandler) GetHealthHandler(c *gin.Context) {
+	ipCollector := ip.NewIPCollector()
+
+	ipData, err := ipCollector.GetLocalIP()
+
+	localIP := ""
+
+	if err != nil {
+		localIP = "Unable to get IP"
+	} else {
+		localIP = ipData.Query
+	}
+
 	c.JSON(200, success(HealthData{
 		Running: true,
 		Date:    time.Now(),
+		IP:      localIP,
 	}))
 }

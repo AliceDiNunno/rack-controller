@@ -12,5 +12,5 @@ func (rH RoutesHandler) GetDomainsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, success(domains))
+	rH.handleSuccess(c, domains)
 }

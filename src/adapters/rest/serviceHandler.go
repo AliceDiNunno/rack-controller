@@ -9,29 +9,29 @@ import (
 	"github.com/google/uuid"
 )
 
-func (rH RoutesHandler) getServiceMiddleware(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) getServiceMiddleware(c *gin.Context) {
+	project := rH.getProject(c)
 
-	user := rH.getAuthenticatedUser(context)
+	user := rH.getAuthenticatedUser(c)
 	if user == nil {
 		return
 	}
 
-	id, stderr := uuid.Parse(context.Param("service_id"))
+	id, stderr := uuid.Parse(c.Param("service_id"))
 
 	if stderr != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
 	service, err := rH.usecases.GetServiceById(project, id)
 
 	if err != nil {
-		rH.handleError(context, err.Append(domain.ErrEnvironmentNotFound))
+		rH.handleError(c, err.Append(domain.ErrEnvironmentNotFound))
 		return
 	}
 
-	context.Set("service", service)
+	c.Set("service", service)
 }
 
 func (rH RoutesHandler) getService(c *gin.Context) *domain.Service {
@@ -46,14 +46,14 @@ func (rH RoutesHandler) getService(c *gin.Context) *domain.Service {
 	return service
 }
 
-func (rH RoutesHandler) getServiceOfEnvironmentHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) getServiceOfEnvironmentHandler(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
 	}
 
-	environment := rH.getEnvironment(context)
+	environment := rH.getEnvironment(c)
 
 	if environment == nil {
 		return
@@ -62,75 +62,75 @@ func (rH RoutesHandler) getServiceOfEnvironmentHandler(context *gin.Context) {
 	serviceOfEnvironment, err := rH.usecases.GetServiceOfEnvironment(service, environment)
 
 	if err != nil {
-		rH.handleError(context, err.Append(domain.ErrEnvironmentNotFound))
+		rH.handleError(c, err.Append(domain.ErrEnvironmentNotFound))
 		return
 	}
 
-	context.JSON(200, success(serviceOfEnvironment))
+	rH.handleSuccess(c, serviceOfEnvironment)
 }
 
-func (rH RoutesHandler) getServicesHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) getServicesHandler(c *gin.Context) {
+	project := rH.getProject(c)
 	if project == nil {
 		return
 	}
 
 	services, err := rH.usecases.GetServices(project)
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(services))
+	rH.handleSuccess(c, services)
 }
 
-func (rH RoutesHandler) createServiceHandler(context *gin.Context) {
-	project := rH.getProject(context)
+func (rH RoutesHandler) createServiceHandler(c *gin.Context) {
+	project := rH.getProject(c)
 	if project == nil {
 		return
 	}
 
 	var service request.ServiceCreationRequest
-	stderr := context.BindJSON(&service)
+	stderr := c.BindJSON(&service)
 	if stderr != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
 	err := rH.usecases.CreateService(project, &service)
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(201, success(service))
+	rH.handleSuccess(c, service)
 }
 
-func (rH RoutesHandler) deleteServiceHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) deleteServiceHandler(c *gin.Context) {
+	service := rH.getService(c)
 	if service == nil {
 		return
 	}
 
 	err := rH.usecases.DeleteService(service)
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(nil))
+	rH.handleSuccess(c, nil)
 }
 
-func (rH RoutesHandler) getServiceHandler(context *gin.Context) {
-
-}
-
-func (rH RoutesHandler) updateServiceHandler(context *gin.Context) {
+func (rH RoutesHandler) getServiceHandler(c *gin.Context) {
 
 }
 
-func (rH RoutesHandler) getServiceConfigHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) updateServiceHandler(c *gin.Context) {
+
+}
+
+func (rH RoutesHandler) getServiceConfigHandler(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
@@ -139,16 +139,16 @@ func (rH RoutesHandler) getServiceConfigHandler(context *gin.Context) {
 	config, err := rH.usecases.GetServiceConfig(service)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(config))
+	rH.handleSuccess(c, config)
 }
 
-func (rH RoutesHandler) restartServiceHandler(context *gin.Context) {
+func (rH RoutesHandler) restartServiceHandler(c *gin.Context) {
 	print("Endpoint hit")
-	service := rH.getService(context)
+	service := rH.getService(c)
 
 	if service == nil {
 		return
@@ -157,15 +157,15 @@ func (rH RoutesHandler) restartServiceHandler(context *gin.Context) {
 	err := rH.usecases.RestartService(service)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(service))
+	rH.handleSuccess(c, service)
 }
 
-func (rH RoutesHandler) updateServiceConfigHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) updateServiceConfigHandler(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
@@ -173,17 +173,17 @@ func (rH RoutesHandler) updateServiceConfigHandler(context *gin.Context) {
 
 	var configRequest request.UpdateRequest
 
-	if err := context.ShouldBindJSON(&configRequest); err != nil {
-		rH.handleError(context, e.Wrap(ErrFormValidation))
+	if err := c.ShouldBindJSON(&configRequest); err != nil {
+		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
 	err := rH.usecases.UpdateServiceConfig(service, clusterDomain.EnvironmentListFromMap(configRequest.Data))
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(service))
+	rH.handleSuccess(c, service)
 }

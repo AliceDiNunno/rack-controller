@@ -6,7 +6,7 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/config"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
-	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
+	eventDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/ovhDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/google/uuid"
@@ -50,15 +50,15 @@ type Usecases interface {
 	DeleteService(service *domain.Service) *e.Error
 
 	//Events
-	PushNewLogEntry(id uuid.UUID, request *request.ItemCreationRequest) *e.Error
+	PushNewEvent(id uuid.UUID, request *request.ItemCreationRequest) *e.Error
 
-	GetProjectsEvent(user *userDomain.User, project *domain.Project) ([]logDomain.LogEntry, *e.Error)
-	FetchGroupingIdContent(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error)
-	FetchGroupingIdOccurrences(project *domain.Project, groupingId string) ([]logDomain.LogEntry, *e.Error)
-	FetchGroupOccurrence(project *domain.Project, groupingId string, occurrence string) (*logDomain.LogEntry, *e.Error)
-	FetchProjectVersions(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
-	FetchProjectEnvironments(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
-	FetchProjectServers(project *domain.Project) ([]logDomain.LogEntry, *e.Error)
+	GetProjectsEvent(user *userDomain.User, project *domain.Project) ([]eventDomain.Event, *e.Error)
+	FetchGroupingIdContent(project *domain.Project, groupingId string) (*eventDomain.Event, *e.Error)
+	FetchGroupingIdOccurrences(project *domain.Project, groupingId string) ([]eventDomain.Event, *e.Error)
+	FetchGroupOccurrence(project *domain.Project, groupingId string, occurrence string) (*eventDomain.Event, *e.Error)
+	FetchProjectVersions(project *domain.Project) ([]eventDomain.Event, *e.Error)
+	FetchProjectEnvironments(project *domain.Project) ([]eventDomain.Event, *e.Error)
+	FetchProjectServers(project *domain.Project) ([]eventDomain.Event, *e.Error)
 
 	//Instances
 	GetServiceInstances(service *domain.Service, environments *domain.Environment) ([]clusterDomain.Pod, *e.Error)
@@ -67,10 +67,20 @@ type Usecases interface {
 	GetInstanceByName(service *domain.Service, environment *domain.Environment, name string) (*clusterDomain.Pod, *e.Error)
 	DeleteInstance(service *domain.Service, environment *domain.Environment, instance *clusterDomain.Pod) *e.Error
 
+	//Addons
+	GetAddons(service *domain.Service) ([]domain.Addon, *e.Error)
+	GetAddonById(service *domain.Service, id uuid.UUID) (*domain.Addon, *e.Error)
+	CreateAddon(service *domain.Service, r *request.AddonCreationRequest) (*domain.Addon, *e.Error)
+
 	//Nodes
 	GetNodes() ([]clusterDomain.Node, *e.Error)
-	GetSpecificNode(id string) (*clusterDomain.Node, *e.Error)
 
 	//Domain names and ingress
+	GetSpecificNode(id string) (*clusterDomain.Node, *e.Error)
+
 	GetDomainNames() ([]ovhDomain.DomainName, *e.Error)
+
+	//IPs
+	/*GetIPs(ip ...string) ([]string, *e.Error)
+	GetLocalIP() (string, *e.Error)*/
 }

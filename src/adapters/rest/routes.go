@@ -1,12 +1,23 @@
 package rest
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
+
+/*
+func (rH RoutesHandler) debugRoute(c *gin.Context) {
+	print("ROUTE")
+
+	print(c.FullPath())
+}*/
 
 func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	r := server.Router
 
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+
+	//r.Use(routesHandler.debugRoute)
 
 	r.NoRoute(routesHandler.endpointNotFound)
 
@@ -36,7 +47,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	projectsEndpoint := authenticatedEndpoint.Group("/projects")
 	projectsEndpoint.GET("", routesHandler.getProjectsHandler)
 	projectsEndpoint.POST("", routesHandler.createProjectHandler)
-	projectsEndpoint.POST("/events", routesHandler.PushLogsHandler) //Push a log
+	projectsEndpoint.POST("/events", routesHandler.PushEventsHandler) //Push a log
 
 	selectedProjectEndpoint := projectsEndpoint.Group("/:project_id", routesHandler.getProjectMiddleware)
 	selectedProjectEndpoint.GET("", routesHandler.getProjectHandler)
@@ -64,6 +75,13 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	selectedServiceEndpoint.DELETE("", routesHandler.deleteServiceHandler)
 	selectedServiceEndpoint.GET("/config", routesHandler.getServiceConfigHandler)
 	selectedServiceEndpoint.POST("/config", routesHandler.updateServiceConfigHandler)
+
+	selectedServiceEndpoint.GET("/add-ons", routesHandler.getServiceAddonsHandler)
+	selectedServiceEndpoint.POST("/add-ons", routesHandler.createServiceAddonHandler)
+
+	selectedAddonEndpoint := selectedServiceEndpoint.Group("/add-ons/:addon_id", routesHandler.getServiceAddonMiddleware)
+	selectedAddonEndpoint.GET("", routesHandler.getSelectedServiceAddonHandler)
+	selectedAddonEndpoint.DELETE("", routesHandler.deleteSelectedServiceAddonHandler)
 
 	serviceSelectedEnvironmentEndpoint := selectedServiceEndpoint.Group("/environments/:environment_id", routesHandler.getProjectEnvironmentsMiddleware)
 	serviceSelectedEnvironmentEndpoint.GET("", routesHandler.getServiceOfEnvironmentHandler)
@@ -96,7 +114,7 @@ func SetRoutes(server GinServer, routesHandler RoutesHandler) {
 	itemsGroup.GET("", routesHandler.GetItemsHandler) //Search all grouping ids
 
 	logsGroup := itemsGroup.Group("/:grouping_id", routesHandler.fetchingGroupMiddleware())
-	logsGroup.GET("/occurrences", routesHandler.GetLogsOccurencesHandler)       //Getting a specific log id
-	logsGroup.GET("", routesHandler.SearchLogsInGroupingHandler)                //Search all logs (corresponding to a grouping ID)
-	logsGroup.GET("/occurrences/:log_id", routesHandler.GetSpecificLogsHandler) //Getting a specific log id
+	logsGroup.GET("/occurrences", routesHandler.GetEventsOccurencesHandler)       //Getting a specific log id
+	logsGroup.GET("", routesHandler.SearchEventsInGroupingHandler)                //Search all logs (corresponding to a grouping ID)
+	logsGroup.GET("/occurrences/:log_id", routesHandler.GetSpecificEventsHandler) //Getting a specific log id
 }

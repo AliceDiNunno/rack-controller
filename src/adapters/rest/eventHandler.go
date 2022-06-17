@@ -43,7 +43,7 @@ func (rH RoutesHandler) getGrouping(c *gin.Context) string {
 	return foundGrouping
 }
 
-func (rH RoutesHandler) PushLogsHandler(c *gin.Context) {
+func (rH RoutesHandler) PushEventsHandler(c *gin.Context) {
 	var creationRequest request.ItemCreationRequest
 
 	id, stderr := uuid.Parse(c.Param("project_id"))
@@ -60,7 +60,7 @@ func (rH RoutesHandler) PushLogsHandler(c *gin.Context) {
 		return
 	}
 
-	err := rH.usecases.PushNewLogEntry(id, &creationRequest)
+	err := rH.usecases.PushNewEvent(id, &creationRequest)
 
 	if err != nil {
 		rH.handleError(c, err)
@@ -70,7 +70,7 @@ func (rH RoutesHandler) PushLogsHandler(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
-func (rH RoutesHandler) SearchLogsInGroupingHandler(c *gin.Context) {
+func (rH RoutesHandler) SearchEventsInGroupingHandler(c *gin.Context) {
 	user := rH.getAuthenticatedUser(c)
 	if user == nil {
 		return
@@ -83,17 +83,17 @@ func (rH RoutesHandler) SearchLogsInGroupingHandler(c *gin.Context) {
 
 	groupingId := c.Param("grouping_id")
 
-	logs, err := rH.usecases.FetchGroupingIdContent(project, groupingId)
+	events, err := rH.usecases.FetchGroupingIdContent(project, groupingId)
 
 	if err != nil {
 		rH.handleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, success(logs))
+	rH.handleSuccess(c, events)
 }
 
-func (rH RoutesHandler) GetLogsOccurencesHandler(c *gin.Context) {
+func (rH RoutesHandler) GetEventsOccurencesHandler(c *gin.Context) {
 	user := rH.getAuthenticatedUser(c)
 	if user == nil {
 		return
@@ -109,17 +109,17 @@ func (rH RoutesHandler) GetLogsOccurencesHandler(c *gin.Context) {
 		return
 	}
 
-	logs, err := rH.usecases.FetchGroupingIdOccurrences(project, groupingId)
+	events, err := rH.usecases.FetchGroupingIdOccurrences(project, groupingId)
 
 	if err != nil {
 		rH.handleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, success(logs))
+	rH.handleSuccess(c, events)
 }
 
-func (rH RoutesHandler) GetSpecificLogsHandler(c *gin.Context) {
+func (rH RoutesHandler) GetSpecificEventsHandler(c *gin.Context) {
 	user := rH.getAuthenticatedUser(c)
 	if user == nil {
 		return
@@ -140,14 +140,14 @@ func (rH RoutesHandler) GetSpecificLogsHandler(c *gin.Context) {
 		rH.handleError(c, e.Wrap(ErrFormValidation))
 	}
 
-	logs, err := rH.usecases.FetchGroupOccurrence(project, groupingId, logId)
+	events, err := rH.usecases.FetchGroupOccurrence(project, groupingId, logId)
 
 	if err != nil {
 		rH.handleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, success(logs))
+	rH.handleSuccess(c, events)
 }
 
 func (rH RoutesHandler) GetServerHandler(c *gin.Context) {
@@ -168,7 +168,7 @@ func (rH RoutesHandler) GetServerHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, success(servers))
+	rH.handleSuccess(c, servers)
 }
 
 func (rH RoutesHandler) GetVersionHandler(c *gin.Context) {
@@ -189,7 +189,7 @@ func (rH RoutesHandler) GetVersionHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, success(versions))
+	rH.handleSuccess(c, versions)
 }
 
 func (rH RoutesHandler) GetEnvironmentHandler(c *gin.Context) {
@@ -210,7 +210,7 @@ func (rH RoutesHandler) GetEnvironmentHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, success(environments))
+	rH.handleSuccess(c, environments)
 }
 
 func (rH RoutesHandler) GetItemsHandler(c *gin.Context) {
@@ -231,5 +231,5 @@ func (rH RoutesHandler) GetItemsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, success(result))
+	rH.handleSuccess(c, result)
 }

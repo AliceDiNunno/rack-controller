@@ -3,7 +3,7 @@ package postgres
 import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
-	logDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
+	eventDomain "github.com/AliceDiNunno/rack-controller/src/core/domain/eventDomain"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -32,67 +32,81 @@ type Traceback struct {
 
 	ID uuid.UUID
 
-	Message    string
-	Traceback  []TracebackEntry
-	LogEntry   *LogEntry
-	LogEntryID uuid.UUID
+	Message   string
+	Traceback []TracebackEntry
+	Event     *Event
+	EventID   uuid.UUID
 }
 
-type LogEntry struct {
+type EventOccurrence struct {
+	gorm.Model
+
+	ID        uuid.UUID
+	Timestamp time.Time
+	Event     Event
+	EventID   uuid.UUID
+
+	Platform    string
+	Source      string //Source is either server or client
+	Hostname    string //Hostname can be the name of the server or the client device
+	Environment string
+	Version     string
+
+	UserID    *uuid.UUID
+	IPAddress string
+}
+
+type Event struct {
 	gorm.Model
 
 	//Object metadata
-	ID        uuid.UUID `gorm:"uniqueIndex:idx_id"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        uuid.UUID
+	Timestamp time.Time
+	Project   Project
+	ProjectID uuid.UUID
 
-	//Entry metadata
-	Timestamp   time.Time
-	GroupingID  string `gorm:"index:idx_group"`
+	//Event metadata
+	GroupingID  string
 	Fingerprint string
 
 	//Identification (for reproduction)
-	Platform    string
-	Source      string
-	ProjectID   uuid.UUID `gorm:"index:idx_project"`
-	Hostname    string
-	Environment string
-	Level       string
-	Version     string
-	Trace       *Traceback
-	TraceID     uuid.UUID
+	Trace   *Traceback
+	TraceID uuid.UUID
+
+	Occurrences []EventOccurrence
+
 	NestedTrace []Traceback
-	UserID      *uuid.UUID
-	IPAddress   string
-	StatusCode  int
+
+	Level      string
+	Module     string
+	StatusCode int
 
 	//Entry Data
-	Message          string
-	AdditionalFields string
+	Message string
 }
 
-func tracebackToDomain(traceback *Traceback) logDomain.Traceback {
+func tracebackToDomain(traceback *Traceback) eventDomain.Traceback {
 	if traceback == nil {
-		return logDomain.Traceback{}
+		return eventDomain.Traceback{}
 	}
 
-	var tracebackEntries []logDomain.TracebackEntry
+	var tracebackEntries []eventDomain.TracebackEntry
 
 	for _, entry := range traceback.Traceback {
-		tracebackEntries = append(tracebackEntries, logDomain.TracebackEntry{
+		tracebackEntries = append(tracebackEntries, eventDomain.TracebackEntry{
 			Filename: entry.Filename,
 			Line:     entry.Line,
 			Method:   entry.Method,
 		})
 	}
 
-	return logDomain.Traceback{
+	return eventDomain.Traceback{
 		Message:   traceback.Message,
 		Traceback: tracebackEntries,
 	}
 }
 
-func tracebackFromDomain(traceback logDomain.Traceback) Traceback {
+func tracebackFromDomain(traceback eventDomain.Traceback) Traceback {
 	var tracebackEntries []TracebackEntry
 	for _, entry := range traceback.Traceback {
 		tracebackEntries = append(tracebackEntries, TracebackEntry{
@@ -110,8 +124,8 @@ func tracebackFromDomain(traceback logDomain.Traceback) Traceback {
 	}
 }
 
-func tracebacksToDomain(traceback []Traceback) []logDomain.Traceback {
-	var tracebacks []logDomain.Traceback
+func tracebacksToDomain(traceback []Traceback) []eventDomain.Traceback {
+	var tracebacks []eventDomain.Traceback
 
 	for _, tb := range traceback {
 		tracebacks = append(tracebacks, tracebackToDomain(&tb))
@@ -120,7 +134,7 @@ func tracebacksToDomain(traceback []Traceback) []logDomain.Traceback {
 	return tracebacks
 }
 
-func tracebacksFromDomain(traceback []logDomain.Traceback) []Traceback {
+func tracebacksFromDomain(traceback []eventDomain.Traceback) []Traceback {
 	var tracebacks []Traceback
 
 	for _, tb := range traceback {
@@ -130,80 +144,64 @@ func tracebacksFromDomain(traceback []logDomain.Traceback) []Traceback {
 	return tracebacks
 }
 
-func logEntryToDomain(entry *LogEntry) *logDomain.LogEntry {
-	return &logDomain.LogEntry{
-		ID:        entry.ID,
-		CreatedAt: entry.CreatedAt,
-		UpdatedAt: entry.UpdatedAt,
-		ProjectID: entry.ProjectID,
-		Identification: logDomain.LogIdentification{
-			Client: logDomain.LogClientIdentification{
-				UserID:    entry.UserID,
-				IPAddress: entry.IPAddress,
-			},
-			Deployment: logDomain.LogDeploymentIdentification{
-				Platform:    entry.Platform,
-				Source:      entry.Source,
-				Hostname:    entry.Hostname,
-				Environment: entry.Environment,
-				Version:     entry.Version,
-			},
-		},
-		Data: logDomain.LogData{
-			Timestamp:   entry.Timestamp,
-			GroupingID:  entry.GroupingID,
-			Fingerprint: entry.Fingerprint,
-			Level:       entry.Level,
-			Trace:       tracebackToDomain(entry.Trace),
-			NestedTrace: tracebacksToDomain(entry.NestedTrace),
-			Message:     entry.Message,
-			StatusCode:  entry.StatusCode,
-			//AdditionalFields: entry.AdditionalFields,
-		},
-	}
-}
-
-func entriesToDomain(entries []LogEntry) []logDomain.LogEntry {
-	var logEntries []logDomain.LogEntry
+func entriesToDomain(entries []Event) []eventDomain.Event {
+	var eventEntries []eventDomain.Event
 
 	for _, entry := range entries {
-		logEntries = append(logEntries, *logEntryToDomain(&entry))
+		eventEntries = append(eventEntries, *eventEntryToDomain(&entry, 0))
 	}
 
-	return logEntries
+	return eventEntries
 }
 
-func logEntryFromDomain(entry *logDomain.LogEntry) *LogEntry {
-	trace := tracebackFromDomain(entry.Data.Trace)
-
-	return &LogEntry{
+func eventEntryFromDomain(entry *eventDomain.Event) *Event {
+	return &Event{
 		ID:          entry.ID,
-		CreatedAt:   entry.CreatedAt,
-		UpdatedAt:   entry.UpdatedAt,
+		Timestamp:   entry.Timestamp,
 		ProjectID:   entry.ProjectID,
-		Timestamp:   entry.Data.Timestamp,
-		GroupingID:  entry.Data.GroupingID,
-		Fingerprint: entry.Data.Fingerprint,
-		Level:       entry.Data.Level,
-		Trace:       &trace,
-		//AdditionalFields: entry.Data.AdditionalFields,
-		NestedTrace: tracebacksFromDomain(entry.Data.NestedTrace),
-		StatusCode:  entry.Data.StatusCode,
-		Message:     entry.Data.Message,
-		Platform:    entry.Identification.Deployment.Platform,
-		Source:      entry.Identification.Deployment.Source,
-		Hostname:    entry.Identification.Deployment.Hostname,
-		Environment: entry.Identification.Deployment.Environment,
-		Version:     entry.Identification.Deployment.Version,
-		UserID:      entry.Identification.Client.UserID,
-		IPAddress:   entry.Identification.Client.IPAddress,
+		GroupingID:  entry.GroupingID,
+		Fingerprint: entry.Fingerprint,
+		Message:     entry.Message,
+		Level:       entry.Level,
+		StatusCode:  entry.StatusCode,
+		Module:      entry.Module,
+	}
+}
+
+func eventEntryToDomain(entry *Event, occurrences int64) *eventDomain.Event {
+	return &eventDomain.Event{
+		ID:          entry.ID,
+		Timestamp:   entry.Timestamp,
+		ProjectID:   entry.ProjectID,
+		GroupingID:  entry.GroupingID,
+		Fingerprint: entry.Fingerprint,
+		Message:     entry.Message,
+		Level:       entry.Level,
+		StatusCode:  entry.StatusCode,
+		Module:      entry.Module,
+		Occurrences: occurrences,
+	}
+}
+
+func eventOccurrenceFromDomain(entry *eventDomain.EventOccurrence) *EventOccurrence {
+	return &EventOccurrence{
+		ID:          entry.ID,
+		Timestamp:   entry.Timestamp,
+		EventID:     entry.EventID,
+		Platform:    entry.Platform,
+		Source:      entry.Source,
+		Hostname:    entry.Hostname,
+		Environment: entry.Environment,
+		Version:     entry.Version,
+		UserID:      entry.UserID,
+		IPAddress:   entry.IPAddress,
 	}
 }
 
 ////////
 
-func (c eventsRepo) AddLog(entry *logDomain.LogEntry) *e.Error {
-	entryFromDomain := logEntryFromDomain(entry)
+func (c eventsRepo) AddEvent(entry *eventDomain.Event) *e.Error {
+	entryFromDomain := eventEntryFromDomain(entry)
 
 	if err := c.db.Create(entryFromDomain).Error; err != nil {
 		return e.Wrap(err)
@@ -212,72 +210,86 @@ func (c eventsRepo) AddLog(entry *logDomain.LogEntry) *e.Error {
 	return nil
 }
 
-func (c eventsRepo) ProjectVersions(project *domain.Project) ([]logDomain.LogEntry, *e.Error) {
-	var logEntry []logDomain.LogEntry
+func (c eventsRepo) AddOccurrence(occurrence *eventDomain.EventOccurrence) *e.Error {
+	entryFromDomain := eventOccurrenceFromDomain(occurrence)
 
-	err := c.db.Distinct("version").Where("project_id = ?", project.ID).Find(&logEntry).Error
+	if err := c.db.Create(entryFromDomain).Error; err != nil {
+		return e.Wrap(err)
+	}
+
+	return nil
+}
+
+func (c eventsRepo) ProjectVersions(project *domain.Project) ([]eventDomain.Event, *e.Error) {
+	var eventEntry []eventDomain.Event
+
+	err := c.db.Distinct("version").Where("project_id = ?", project.ID).Find(&eventEntry).Error
 
 	if err != nil {
 		return nil, e.Wrap(err)
 	}
 
-	return logEntry, nil
+	return eventEntry, nil
 }
 
-func (c eventsRepo) ProjectEnvironments(project *domain.Project) ([]logDomain.LogEntry, *e.Error) {
-	var logEntry []logDomain.LogEntry
+func (c eventsRepo) ProjectEnvironments(project *domain.Project) ([]eventDomain.Event, *e.Error) {
+	var eventEntry []eventDomain.Event
 
-	err := c.db.Distinct("environment").Where("project_id = ?", project.ID).Find(&logEntry).Error
+	err := c.db.Distinct("environment").Where("project_id = ?", project.ID).Find(&eventEntry).Error
 
 	if err != nil {
 		return nil, e.Wrap(err)
 	}
 
-	return logEntry, nil
+	return eventEntry, nil
 }
 
-func (c eventsRepo) ProjectServers(project *domain.Project) ([]logDomain.LogEntry, *e.Error) {
-	var logEntry []logDomain.LogEntry
+func (c eventsRepo) ProjectServers(project *domain.Project) ([]eventDomain.Event, *e.Error) {
+	var eventEntry []eventDomain.Event
 
-	err := c.db.Distinct("environment").Where("project_id = ?", project.ID).Find(&logEntry).Error
+	err := c.db.Distinct("environment").Where("project_id = ?", project.ID).Find(&eventEntry).Error
 
 	if err != nil {
 		return nil, e.Wrap(err)
 	}
 
-	return logEntry, nil
+	return eventEntry, nil
 }
 
-func (c eventsRepo) ProjectGroupingIds(project *domain.Project) ([]logDomain.LogEntry, *e.Error) {
-	var logEntry []LogEntry
+func (c eventsRepo) ProjectGroupingIds(project *domain.Project) ([]eventDomain.Event, *e.Error) {
+	var eventEntry []Event
 
-	err := c.db.Distinct("grouping_id").Where("project_id = ?", project.ID).Find(&logEntry).Error
+	err := c.db.Distinct("grouping_id").Where("project_id = ?", project.ID).Find(&eventEntry).Error
 
 	if err != nil {
 		return nil, e.Wrap(err)
 	}
 
-	return entriesToDomain(logEntry), nil
+	return entriesToDomain(eventEntry), nil
 }
 
-func (c eventsRepo) FindLastEntryForGroup(project *domain.Project, groupingId string) (*logDomain.LogEntry, *e.Error) {
-	var logEntry *LogEntry
+func (c eventsRepo) FindLastEntryForGroup(project *domain.Project, groupingId string) (*eventDomain.Event, *e.Error) {
+	var eventEntry *Event
+	var count int64
 
-	err := c.db.Where("grouping_id = ?", groupingId).Order("created_at desc").Last(&logEntry).Error
+	data := c.db.Where("grouping_id = ?", groupingId).Order("created_at desc").Last(&eventEntry)
 
-	if err != nil {
+	data.Count(&count)
+
+	if err := data.Error; err != nil {
+		spew.Dump(err)
 		return nil, e.Wrap(err)
 	}
 
-	return logEntryToDomain(logEntry), nil
+	return eventEntryToDomain(eventEntry, count), nil
 }
 
-func (c eventsRepo) FindGroupOccurrences(project *domain.Project, groupingId string) ([]logDomain.LogEntry, *e.Error) {
-	var entries []logDomain.LogEntry
+func (c eventsRepo) FindGroupOccurrences(project *domain.Project, groupingId string) ([]eventDomain.Event, *e.Error) {
+	var entries []eventDomain.Event
 
-	err := c.db.Where("grouping_id = ?", groupingId).Order("created_at desc").Last(&entries).Error
+	data := c.db.Where("grouping_id = ?", groupingId).Order("created_at desc").Last(&entries)
 
-	if err != nil {
+	if err := data.Error; err != nil {
 		spew.Dump(err)
 		return nil, e.Wrap(err)
 	}
@@ -285,7 +297,7 @@ func (c eventsRepo) FindGroupOccurrences(project *domain.Project, groupingId str
 	return entries, nil
 }
 
-func (c eventsRepo) FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*logDomain.LogEntry, *e.Error) {
+func (c eventsRepo) FindGroupOccurrence(project *domain.Project, groupingId string, occurenceId string) (*eventDomain.Event, *e.Error) {
 	return nil, nil
 
 	/*var entry logEntry
@@ -308,22 +320,13 @@ func (c eventsRepo) FindGroupOccurrence(project *domain.Project, groupingId stri
 		return nil, e.Wrap(err)
 	}
 
-	return logEntryToDomain(&entry), nil*/
+	return eventEntryToDomain(&entry), nil*/
 }
 
 func (c eventsRepo) IsGroupExist(project *domain.Project, groupingId string) bool {
-	/*search := bson.D{{"grouping_id", groupingId}}
-	count, err := c.collection.CountDocuments(context.Background(), search)
+	entry, err := c.FindLastEntryForGroup(project, groupingId)
 
-	if err != nil {
-		return false
-	}
-
-	return count > 0*/
-
-	//TODO: implement
-
-	return false
+	return entry != nil || err == nil
 }
 
 ///////

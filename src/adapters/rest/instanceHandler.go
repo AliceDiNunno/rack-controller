@@ -7,29 +7,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (rH RoutesHandler) getServiceInstanceMiddleware(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) getServiceInstanceMiddleware(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
 	}
 
-	environment := rH.getEnvironment(context)
+	environment := rH.getEnvironment(c)
 
 	if environment == nil {
 		return
 	}
 
-	instanceName := context.Param("instance_name")
+	instanceName := c.Param("instance_name")
 
 	instance, err := rH.usecases.GetInstanceByName(service, environment, instanceName)
 
 	if err != nil {
-		rH.handleError(context, e.Wrap(domain.ErrInstanceNotFound))
+		rH.handleError(c, e.Wrap(domain.ErrInstanceNotFound))
 		return
 	}
 
-	context.Set("instance", instance)
+	c.Set("instance", instance)
 }
 
 func (rH RoutesHandler) getInstance(c *gin.Context) *clusterDomain.Pod {
@@ -44,14 +44,14 @@ func (rH RoutesHandler) getInstance(c *gin.Context) *clusterDomain.Pod {
 	return instance
 }
 
-func (rH RoutesHandler) getServiceInstancesHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) getServiceInstancesHandler(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
 	}
 
-	environments := rH.getEnvironment(context)
+	environments := rH.getEnvironment(c)
 
 	if environments == nil {
 		return
@@ -60,49 +60,49 @@ func (rH RoutesHandler) getServiceInstancesHandler(context *gin.Context) {
 	instances, err := rH.usecases.GetServiceInstances(service, environments)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(instances))
+	rH.handleSuccess(c, instances)
 }
 
-func (rH RoutesHandler) getServiceInstanceHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) getServiceInstanceHandler(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
 	}
 
-	environment := rH.getEnvironment(context)
+	environment := rH.getEnvironment(c)
 
 	if environment == nil {
 		return
 	}
 
-	instance := rH.getInstance(context)
+	instance := rH.getInstance(c)
 
 	if instance == nil {
 		return
 	}
 
-	context.JSON(200, success(instance))
+	rH.handleSuccess(c, instance)
 }
 
-func (rH RoutesHandler) deleteServiceInstanceHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) deleteServiceInstanceHandler(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
 	}
 
-	environment := rH.getEnvironment(context)
+	environment := rH.getEnvironment(c)
 
 	if environment == nil {
 		return
 	}
 
-	instance := rH.getInstance(context)
+	instance := rH.getInstance(c)
 
 	if instance == nil {
 		return
@@ -111,31 +111,31 @@ func (rH RoutesHandler) deleteServiceInstanceHandler(context *gin.Context) {
 	err := rH.usecases.DeleteInstance(service, environment, instance)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(nil))
+	rH.handleSuccess(c, nil)
 }
 
-func (rH RoutesHandler) getServiceInstanceEventsHandler(context *gin.Context) {
+func (rH RoutesHandler) getServiceInstanceEventsHandler(c *gin.Context) {
 
 }
 
-func (rH RoutesHandler) getServiceInstanceLogsHandler(context *gin.Context) {
-	service := rH.getService(context)
+func (rH RoutesHandler) getServiceInstanceLogsHandler(c *gin.Context) {
+	service := rH.getService(c)
 
 	if service == nil {
 		return
 	}
 
-	environment := rH.getEnvironment(context)
+	environment := rH.getEnvironment(c)
 
 	if environment == nil {
 		return
 	}
 
-	instance := rH.getInstance(context)
+	instance := rH.getInstance(c)
 
 	if instance == nil {
 		return
@@ -144,9 +144,9 @@ func (rH RoutesHandler) getServiceInstanceLogsHandler(context *gin.Context) {
 	logs, err := rH.usecases.GetInstanceLogs(service, environment, instance)
 
 	if err != nil {
-		rH.handleError(context, err)
+		rH.handleError(c, err)
 		return
 	}
 
-	context.JSON(200, success(logs))
+	rH.handleSuccess(c, logs)
 }
