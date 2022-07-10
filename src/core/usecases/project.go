@@ -147,11 +147,12 @@ func (i interactor) UpdateProjectConfig(project *domain.Project, envVariables []
 
 func (i interactor) ConfigForProject(project *domain.Project) map[string]string {
 	config := map[string]string{
-		"LISTEN_ADDRESS": "0.0.0.0",
-		"PORT":           "80",
-		"TLS_ENABLED":    "false",
-		"PROJECT_ID":     project.ID.String(),
-		"EVENT_KEY":      project.EventKey.String(),
+		"HTTP_LISTEN_ADDRESS": "0.0.0.0",
+		"HTTP_LISTEN_PORT":    "80",
+		"HTTP_TLS_ENABLED":    "false",
+
+		"LOGGER_PROJECT_ID": project.ID.String(),
+		"LOGGER_EVENT_KEY":  project.EventKey.String(),
 	}
 
 	if project == nil {

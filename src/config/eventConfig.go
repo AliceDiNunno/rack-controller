@@ -3,7 +3,7 @@ package config
 import GoLoggerClient "github.com/AliceDiNunno/go-logger-client"
 
 func LoadEventConfiguration() GoLoggerClient.ClientConfiguration {
-	version, err := GetEnvString("APP_VERSION")
+	version, err := GetEnvString("LOGGER_APP_VERSION")
 	if err != nil {
 		version = "unknown"
 	}
@@ -14,8 +14,8 @@ func LoadEventConfiguration() GoLoggerClient.ClientConfiguration {
 	}
 
 	return GoLoggerClient.ClientConfiguration{
-		ProjectId:   RequireEnvString("PROJECT_ID"),
-		Key:         RequireEnvString("EVENT_KEY"),
+		ProjectId:   RequireEnvString("LOGGER_PROJECT_ID"),
+		Key:         RequireEnvString("LOGGER_EVENT_KEY"),
 		Environment: env,
 		Version:     version,
 

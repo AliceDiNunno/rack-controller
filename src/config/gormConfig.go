@@ -10,8 +10,8 @@ type GormConfig struct {
 
 func LoadGormConfiguration() GormConfig {
 	return GormConfig{
-		Host:     RequireEnvString("DB_HOST"),
-		Port:     RequireEnvInt("DB_PORT"),
+		Host:     RequireEnvString("POSTGRES_HOST"),
+		Port:     RequireEnvInt("POSTGRES_PORT"),
 		User:     RequireEnvString("POSTGRES_USER"),
 		Password: RequireEnvString("POSTGRES_USER"),
 		DbName:   RequireEnvString("POSTGRES_DB"),
