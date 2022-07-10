@@ -25,9 +25,9 @@ func (rH RoutesHandler) GetHealthHandler(c *gin.Context) {
 		localIP = ipData.Query
 	}
 
-	c.JSON(200, success(HealthData{
+	rH.handleSuccess(c, HealthData{
 		Running: true,
 		Date:    time.Now(),
 		IP:      localIP,
-	}))
+	})
 }

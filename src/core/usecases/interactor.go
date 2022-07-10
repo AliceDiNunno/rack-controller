@@ -90,6 +90,7 @@ type EventRepository interface {
 type AddonRepository interface {
 	GetAddons(service *domain.Service) ([]domain.Addon, *e.Error)
 	GetAddonById(service *domain.Service, id uuid.UUID) (*domain.Addon, *e.Error)
+	CreateAddon(d *domain.Addon) (*domain.Addon, *e.Error)
 }
 
 type IpInformationCollector interface {

@@ -32,24 +32,28 @@ func (s addonRepo) GetAddons(service *domain.Service) ([]domain.Addon, *e.Error)
 	return addonsToDomain(addons), nil
 }
 
-func (s addonRepo) CreateOrUpdateAddon(addon *domain.Addon) *e.Error {
+func (s addonRepo) CreateAddon(d *domain.Addon) (*domain.Addon, *e.Error) {
+	return s.CreateOrUpdateAddon(d)
+}
+
+func (s addonRepo) CreateOrUpdateAddon(addon *domain.Addon) (*domain.Addon, *e.Error) {
 	addonToSave := addonFromDomain(*addon)
 
 	if err := s.db.Where("service_id = ? AND display_name = ?", addon.ServiceID, addon.DisplayName).First(&addonToSave).Error; err != nil {
 		if err != gorm.ErrRecordNotFound {
-			return e.Wrap(err)
+			return nil, e.Wrap(err)
 		}
 
 		if err := s.db.Create(&addonToSave).Error; err != nil {
-			return e.Wrap(err)
+			return nil, e.Wrap(err)
 		}
 	} else {
 		if err := s.db.Save(&addonToSave).Error; err != nil {
-			return e.Wrap(err)
+			return nil, e.Wrap(err)
 		}
 	}
 
-	return nil
+	return addon, nil
 }
 
 func (s addonRepo) UpdateAddon(addon *domain.Addon) *e.Error {

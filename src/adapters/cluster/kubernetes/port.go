@@ -30,6 +30,7 @@ func ExecPortTemplate(namespace string, name string, portsToExpose []clusterDoma
 		portList = append(portList, v16.ServicePortApplyConfiguration{
 			Name: port.Name,
 			Port: port.ContainerPort,
+
 			TargetPort: &intstr.IntOrString{
 				Type:   1,
 				StrVal: *port.Name,

@@ -29,13 +29,18 @@ func (rH RoutesHandler) handleError(c *gin.Context, err *e.Error) {
 	c.AbortWithStatusJSON(code, Status{
 		Success: false,
 		Message: err.Err.Error(),
+		Error:   err,
 		Data:    nil,
 		Host:    hostname,
 	})
 }
 
 func (rH RoutesHandler) handleSuccess(c *gin.Context, data interface{}) {
-	hostname, _ := os.Hostname()
+	hostname, err := os.Hostname()
+
+	if err != nil {
+		hostname = ""
+	}
 
 	println(c.Request.RequestURI, spew.Sdump(data))
 
