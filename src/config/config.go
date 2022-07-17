@@ -34,7 +34,7 @@ func GetEnvString(name string) (string, error) {
 	if strings.Contains(name, "SECRET") || strings.Contains(name, "KEY") || strings.Contains(name, "TOKEN") || strings.Contains(name, "PASSWORD") {
 		log.Println("[", name, "] = ****")
 	} else {
-		log.Println("[", name, "] = ", envVariable)
+		log.Println("[", name, "] =", envVariable)
 	}
 
 	return envVariable, nil
