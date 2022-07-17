@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"fmt"
 	glc "github.com/AliceDiNunno/go-logger-client"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/cluster/kubernetes"
 	eventAdapter "github.com/AliceDiNunno/rack-controller/src/adapters/event"
@@ -15,6 +16,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	stdlog "log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 func main() {
@@ -26,6 +29,16 @@ func main() {
 	//Loading Configuration
 	config.LoadEnv()
 	globalConfiguration := config.LoadGlobalConfiguration()
+
+	if globalConfiguration.DebugEnvironmentVariables {
+		println("DEBUG MODE: Environment variables are being printed")
+		println("WARNING: This is a debug mode, please do not use this in production")
+		for _, e := range os.Environ() {
+			pair := strings.SplitN(e, "=", 2)
+			fmt.Println(pair[0], "=", pair[1])
+		}
+	}
+
 	ginConfiguration := config.LoadGinConfiguration()
 	dbConfig := config.LoadGormConfiguration()
 	initialUserConfiguration := config.LoadInitialUserConfiguration()
