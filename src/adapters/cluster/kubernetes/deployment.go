@@ -48,8 +48,6 @@ func ExecBasicContainerTemplate(namespace string, request clusterDomain.Deployme
 		envFrom = append(envFrom, apply)
 	}
 
-	spew.Dump(envFrom)
-
 	for _, currentSecret := range request.Secrets {
 		apply := corev1Apply.EnvFromSourceApplyConfiguration{
 			Prefix:       nil,
@@ -302,6 +300,38 @@ func (k8s kubernetesInstance) GetConfigMapsOfADeployment(namespace string, name 
 	}
 
 	return configMapsToReturn, nil
+}
+
+func (k8s kubernetesInstance) AddSecretsToDeployment(namespace string, deploymentSlug string, secretSlug string) *e.Error {
+	deployment, err := k8s.getDeployment(namespace, deploymentSlug)
+
+	if err != nil {
+		return err
+	}
+
+	if deployment.Spec.Template.Spec.Containers == nil {
+		return e.Wrap(ErrUnableToGetRessource)
+	}
+
+	if deployment.Spec.Template.Spec.Containers[0].EnvFrom == nil {
+		deployment.Spec.Template.Spec.Containers[0].EnvFrom = []corev1.EnvFromSource{}
+	}
+
+	deployment.Spec.Template.Spec.Containers[0].EnvFrom = append(deployment.Spec.Template.Spec.Containers[0].EnvFrom, corev1.EnvFromSource{
+		SecretRef: &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: secretSlug,
+			},
+		},
+	})
+
+	_, stderr := k8s.Client.AppsV1().Deployments(namespace).Update(context.Background(), deployment, v12.UpdateOptions{})
+
+	if stderr != nil {
+		return e.Wrap(stderr).Append(ErrUnableToUpdateApp)
+	}
+
+	return nil
 }
 
 func (k8s kubernetesInstance) GetSecretsOfADeployment(namespace string, name string) ([]string, *e.Error) {

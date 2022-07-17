@@ -170,10 +170,10 @@ func (i interactor) ConfigForService(service *domain.Service) map[string]string 
 	}
 
 	config := map[string]string{
-		"SERVICE_NAME": service.DisplayName,
-		"SERVICE_SLUG": service.Slug,
-		"API_PREFIX":   service.Slug,
-		"DB_NAME":      service.Slug,
+		"SERVICE_NAME":    service.DisplayName,
+		"SERVICE_SLUG":    service.Slug,
+		"HTTP_API_PREFIX": service.Slug,
+		"DB_NAME":         service.Slug,
 	}
 
 	userConfig, err := i.configRepository.GetConfigByObjectID(service.ID)

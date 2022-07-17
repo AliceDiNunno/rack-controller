@@ -18,5 +18,7 @@ var (
 	ErrJwtTokenClaimsInvalid   = errors.New("jwt token claims invalid")
 	ErrJwtTokenNotTrusted      = errors.New("jwt token not trusted")
 
+	ErrServiceNotFound = errors.New("service not found")
+
 	ErrNodeNotFound = errors.New("node not found")
 )

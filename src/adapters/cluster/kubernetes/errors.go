@@ -22,4 +22,6 @@ var (
 	ErrUnableToDeleteRessource = errors.New("unable to delete ressource")
 	ErrUnableToDeployApp       = errors.New("unable to deploy app")
 	ErrUnableToUpdateApp       = errors.New("unable to update app")
+
+	ErrUnableToCreateService = errors.New("unable to create service")
 )

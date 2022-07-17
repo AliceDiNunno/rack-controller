@@ -36,6 +36,21 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 	addonName := fmt.Sprintf("%s-postgres", service.DisplayName)
 	addonSlug := slugify(addonName)
 
+	addonToBeCreated := domain.Addon{
+		DisplayName: addonName,
+		Type:        domain.AddonTypePostgres,
+		ServiceID:   service.ID,
+	}
+
+	addonToBeCreated.Slug = slugify(addonToBeCreated.DisplayName)
+	addonToBeCreated.Initialize()
+
+	addon, err := i.addonRepository.CreateAddon(&addonToBeCreated)
+
+	if err != nil {
+		return nil, err.Append(domain.ErrUnableToCreateAddon)
+	}
+
 	for _, env := range environment {
 		secretName := fmt.Sprintf("%s-secret", addonSlug)
 
@@ -51,11 +66,19 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 				},
 				{
 					Name:  "POSTGRES_USER",
-					Value: generateRandomString(64),
+					Value: generateRandomStrongString(32),
 				},
 				{
 					Name:  "POSTGRES_PASSWORD",
-					Value: generateRandomString(64),
+					Value: generateRandomStrongString(32),
+				},
+				{
+					Name:  "POSTGRES_HOST",
+					Value: fmt.Sprintf("$%s_SERVICE_HOST", slugToEnvironmentVariable(addonSlug)),
+				},
+				{
+					Name:  "POSTGRES_PORT",
+					Value: fmt.Sprintf("$%s_SERVICE_PORT", slugToEnvironmentVariable(addonSlug)),
 				},
 			},
 		}
@@ -67,31 +90,18 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 		}
 
 		err = i.kubeClient.UpdateSecret(env.Slug, secretCreationRequest.Name, secret)
-	}
 
-	addonToBeCreated := domain.Addon{
-		DisplayName: addonName,
-		Type:        domain.AddonTypePostgres,
-		ServiceID:   service.ID,
-	}
+		if err != nil {
+			return nil, err.Append(domain.ErrUnableToCreateAddon)
+		}
 
-	addonToBeCreated.Slug = slugify(addonToBeCreated.DisplayName)
-	addonToBeCreated.Initialize()
+		err = i.kubeClient.AddSecretsToDeployment(env.Slug, service.Slug, secretCreationRequest.Name)
 
-	addon, err := i.addonRepository.CreateAddon(&addonToBeCreated)
+		if err != nil {
+			return nil, err.Append(domain.ErrUnableToCreateAddon)
+		}
 
-	if err != nil {
-		return nil, err
-	}
-
-	if err != nil {
-		return nil, err.Append(domain.ErrUnableToCreateAddon)
-	}
-
-	for _, env := range environment {
-		secretName := fmt.Sprintf("%s-secret", addonSlug)
-
-		err := i.kubeClient.CreateDeployment(env.Slug, clusterDomain.DeploymentCreationRequest{
+		err = i.kubeClient.CreateDeployment(env.Slug, clusterDomain.DeploymentCreationRequest{
 			DeploymentName: addon.Slug,
 			ImageName:      "postgres:latest",
 			Ports: []clusterDomain.Port{
@@ -109,6 +119,19 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 			return nil, err.Append(domain.ErrUnableToCreateAddon)
 		}
 
+		serviceName := fmt.Sprintf("%s-service", addonSlug)
+		err = i.kubeClient.CreateService(env.Slug, clusterDomain.Service{
+			Name:           serviceName,
+			DeploymentName: addon.Slug,
+			PortName:       "pgsql",
+			Protocol:       "TCP",
+			Port:           5432,
+			TargetPort:     5432,
+		})
+
+		if err != nil {
+			return nil, err.Append(domain.ErrUnableToCreateAddon)
+		}
 	}
 
 	return addon, nil

@@ -16,6 +16,7 @@ type Kubernetes interface {
 	GetPortsOfADeployment(namespace string, deploymentName string) ([]clusterDomain.Port, *e.Error)
 	GetConfigMapsOfADeployment(namespace string, name string) ([]string, *e.Error)
 	GetSecretsOfADeployment(namespace string, name string) ([]string, *e.Error)
+	AddSecretsToDeployment(namespace string, deploymentSlug string, secretSlug string) *e.Error
 	DeleteDeployment(namespace string, name string) *e.Error
 	RestartDeployment(namespace string, name string) *e.Error
 	CreateDeployment(namespace string, request clusterDomain.DeploymentCreationRequest) *e.Error
@@ -42,5 +43,6 @@ type Kubernetes interface {
 	CreateSecret(namespace string, request clusterDomain.SecretCreationRequest) *e.Error
 	UpdateSecret(namespace string, name string, request clusterDomain.SecretUpdateRequest) *e.Error
 	DeleteSecret(namespace string, name string) *e.Error
-	DeleteNamespace(slug string) *e.Error
+	DeleteNamespace(namespace string) *e.Error
+	CreateService(namespace string, request clusterDomain.Service) *e.Error
 }

@@ -8,8 +8,6 @@ import (
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain/userDomain"
 	"github.com/google/uuid"
-	"math/rand"
-	"strings"
 )
 
 func (i interactor) GetUserProjects(user *userDomain.User) ([]domain.Project, *e.Error) {
@@ -40,34 +38,6 @@ func (i interactor) GetProjectByID(user *userDomain.User, id uuid.UUID) (*domain
 	}
 
 	return project, nil
-}
-
-func generateRandomString(length int) string {
-	var result strings.Builder
-	for i := 0; i < length; i++ {
-		result.WriteByte(byte(65 + rand.Intn(25)))
-	}
-	return result.String()
-}
-
-//TODO: move to neutral usecase file
-func slugify(s string) string {
-	var result strings.Builder
-	for i := 0; i < len(s); i++ {
-		b := s[i]
-		if ('a' <= b && b <= 'z') ||
-			('0' <= b && b <= '9') || b == '-' {
-
-			result.WriteByte(b)
-		}
-		if 'A' <= b && b <= 'Z' {
-			result.WriteByte(b + 32)
-		}
-		if b == ' ' {
-			result.WriteByte('-')
-		}
-	}
-	return result.String()
 }
 
 func (i interactor) generateKubernetesCompatibleSlug(ressource string, name string) string {

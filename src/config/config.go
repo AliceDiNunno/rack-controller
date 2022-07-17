@@ -25,6 +25,12 @@ func GetEnvString(name string) (string, error) {
 		return "", errors.New("env variable not found")
 	}
 
+	if strings.HasPrefix(envVariable, "$") {
+		varNameWithoutPrefix := strings.TrimPrefix(envVariable, "$")
+		log.Println("Env variable: ", name, " refers to: ", varNameWithoutPrefix)
+		return GetEnvString(varNameWithoutPrefix)
+	}
+
 	if strings.Contains(name, "SECRET") || strings.Contains(name, "KEY") || strings.Contains(name, "TOKEN") || strings.Contains(name, "PASSWORD") {
 		log.Println("[", name, "] = ****")
 	} else {
