@@ -309,6 +309,11 @@ func (k8s kubernetesInstance) AddSecretsToDeployment(namespace string, deploymen
 		return err
 	}
 
+	deployment.ObjectMeta.UID = ""
+	deployment.ObjectMeta.CreationTimestamp = v12.Time{}
+	deployment.ObjectMeta.ResourceVersion = ""
+	deployment.ObjectMeta.Generation = 0
+
 	if deployment.Spec.Template.Spec.Containers == nil {
 		return e.Wrap(ErrUnableToGetRessource)
 	}
@@ -321,6 +326,55 @@ func (k8s kubernetesInstance) AddSecretsToDeployment(namespace string, deploymen
 		SecretRef: &corev1.SecretEnvSource{
 			LocalObjectReference: corev1.LocalObjectReference{
 				Name: secretSlug,
+			},
+		},
+	})
+
+	_, stderr := k8s.Client.AppsV1().Deployments(namespace).Update(context.Background(), deployment, v12.UpdateOptions{})
+
+	if stderr != nil {
+		return e.Wrap(stderr).Append(ErrUnableToUpdateApp)
+	}
+
+	return nil
+}
+
+func (k8s kubernetesInstance) AddVolumeToDeployment(namespace string, deploymentSlug string, volume clusterDomain.VolumeDeployment) *e.Error {
+	deployment, err := k8s.getDeployment(namespace, deploymentSlug)
+
+	if err != nil {
+		return err
+	}
+
+	deployment.ObjectMeta.UID = ""
+	deployment.ObjectMeta.CreationTimestamp = v12.Time{}
+	deployment.ObjectMeta.ResourceVersion = ""
+
+	if deployment.Spec.Template.Spec.Containers == nil {
+		return e.Wrap(ErrUnableToGetRessource)
+	}
+
+	if deployment.Spec.Template.Spec.Containers[0].VolumeMounts == nil {
+		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{}
+	}
+
+	deployment.Spec.Template.Spec.Containers[0].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
+		Name:      volume.Name,
+		MountPath: volume.MountPath,
+		SubPath:   volume.SubPath,
+	})
+
+	//add volume to spec
+	if deployment.Spec.Template.Spec.Volumes == nil {
+		deployment.Spec.Template.Spec.Volumes = []corev1.Volume{}
+	}
+
+	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, corev1.Volume{
+		Name: volume.Name,
+		//PVC
+		VolumeSource: corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+				ClaimName: volume.ClaimName,
 			},
 		},
 	})
@@ -420,7 +474,7 @@ func deploymentToDomain(deployment *appsv1.Deployment) *clusterDomain.Deployment
 	/*
 		if pod.ReadinessProbe != nil {
 			probe = &domain.ContainerProbe{
-				Path:   pod.ReadinessProbe.HTTPGet.Path,
+				MountPath:   pod.ReadinessProbe.HTTPGet.MountPath,
 				Scheme: string(pod.ReadinessProbe.HTTPGet.Scheme),
 				Port:   pod.ReadinessProbe.HTTPGet.Port.StrVal,
 			}

@@ -45,4 +45,8 @@ type Kubernetes interface {
 	DeleteSecret(namespace string, name string) *e.Error
 	DeleteNamespace(namespace string) *e.Error
 	CreateService(namespace string, request clusterDomain.Service) *e.Error
+
+	CreatePersistentVolume(namespace string, request clusterDomain.PersistentVolume) *e.Error
+	CreatePersistentVolumeClaim(namespace string, request clusterDomain.PersistentVolumeClaim) *e.Error
+	AddVolumeToDeployment(namespace string, deploymentSlug string, volume clusterDomain.VolumeDeployment) *e.Error
 }

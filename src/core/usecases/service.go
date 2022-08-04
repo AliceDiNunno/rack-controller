@@ -107,7 +107,7 @@ func (i interactor) CreateService(project *domain.Project, r *request.ServiceCre
 		err := i.kubeClient.CreateDeployment(env.Slug, newDeployment)
 		spew.Dump(err)
 	}
-
+	
 	return i.serviceRepository.CreateOrUpdateService(service)
 }
 
@@ -170,10 +170,11 @@ func (i interactor) ConfigForService(service *domain.Service) map[string]string 
 	}
 
 	config := map[string]string{
-		"SERVICE_NAME":    service.DisplayName,
-		"SERVICE_SLUG":    service.Slug,
-		"HTTP_API_PREFIX": service.Slug,
-		"DB_NAME":         service.Slug,
+		"SERVICE_NAME":        service.DisplayName,
+		"SERVICE_SLUG":        service.Slug,
+		"HTTP_API_PREFIX":     service.Slug,
+		"DB_NAME":             service.Slug,
+		"DEBUG_ENV_VARIABLES": "true",
 	}
 
 	userConfig, err := i.configRepository.GetConfigByObjectID(service.ID)

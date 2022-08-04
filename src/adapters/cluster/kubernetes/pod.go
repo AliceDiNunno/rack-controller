@@ -109,7 +109,7 @@ func podToDomain(pod *corev1.Pod) *clusterDomain.Pod {
 
 	/*	if pod.Spec.Containers[0].ReadinessProbe != nil {
 		readyProbe = &domain.PodProbe{
-			Path:   pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Path,
+			MountPath:   pod.Spec.Containers[0].ReadinessProbe.HTTPGet.MountPath,
 			Scheme: string(pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Scheme),
 			Port:   pod.Spec.Containers[0].ReadinessProbe.HTTPGet.Port.StrVal,
 		}

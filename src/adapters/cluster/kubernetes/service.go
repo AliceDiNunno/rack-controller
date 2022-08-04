@@ -77,34 +77,3 @@ func (k8s kubernetesInstance) CreateService(namespace string, request clusterDom
 
 	return nil
 }
-
-/*
-func (k8s kubernetesInstance) DeleteSecret(namespace string, name string) *e.Error {
-	err := k8s.Client.CoreV1().Secrets(namespace).Delete(context.Background(), name, v1.DeleteOptions{})
-	if err != nil {
-		return e.Wrap(err).Append(ErrSecretDeletionFailed)
-	}
-
-	return nil
-}
-
-func (k8s kubernetesInstance) UpdateSecret(namespace string, name string, request clusterDomain.SecretUpdateRequest) *e.Error {
-	secret, err := k8s.Client.CoreV1().Secrets(namespace).Get(context.Background(), name, v1.GetOptions{})
-	if err != nil {
-		return e.Wrap(err).Append(ErrSecretNotFound)
-	}
-
-	secret.Data = make(map[string][]byte)
-
-	for _, env := range request.Content {
-		secret.Data[env.Name] = []byte(env.Value)
-	}
-
-	_, err = k8s.Client.CoreV1().Secrets(namespace).Update(context.Background(), secret, v1.UpdateOptions{})
-	if err != nil {
-		return e.Wrap(err).Append(ErrSecretUpdateFailed)
-	}
-
-	return nil
-}
-*/

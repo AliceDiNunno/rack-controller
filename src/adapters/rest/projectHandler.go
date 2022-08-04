@@ -136,14 +136,14 @@ func (rH RoutesHandler) updateProjectConfigHandler(c *gin.Context) {
 		return
 	}
 
-	var configRequest request.UpdateRequest
+	var configRequest request.UpdateConfigData
 
 	if err := c.ShouldBindJSON(&configRequest); err != nil {
 		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
-	env := clusterDomain.EnvironmentListFromMap(configRequest.Data)
+	env := clusterDomain.EnvironmentListFromMap(configRequest)
 	err := rH.usecases.UpdateProjectConfig(project, env)
 
 	if err != nil {

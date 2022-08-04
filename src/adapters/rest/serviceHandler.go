@@ -171,14 +171,14 @@ func (rH RoutesHandler) updateServiceConfigHandler(c *gin.Context) {
 		return
 	}
 
-	var configRequest request.UpdateRequest
+	var configRequest request.UpdateConfigData
 
 	if err := c.ShouldBindJSON(&configRequest); err != nil {
 		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
 
-	err := rH.usecases.UpdateServiceConfig(service, clusterDomain.EnvironmentListFromMap(configRequest.Data))
+	err := rH.usecases.UpdateServiceConfig(service, clusterDomain.EnvironmentListFromMap(configRequest))
 
 	if err != nil {
 		rH.handleError(c, err)

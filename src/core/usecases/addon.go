@@ -35,6 +35,10 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 
 	addonName := fmt.Sprintf("%s-postgres", service.DisplayName)
 	addonSlug := slugify(addonName)
+	serviceName := fmt.Sprintf("%s-service", addonSlug)
+	volumeClaimName := fmt.Sprintf("%s-claim", addonSlug)
+	volumeSize := clusterDomain.QuantityGigabytes
+	postgresVolumeMountPath := "/var/lib/postgresql/data"
 
 	addonToBeCreated := domain.Addon{
 		DisplayName: addonName,
@@ -53,6 +57,7 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 
 	for _, env := range environment {
 		secretName := fmt.Sprintf("%s-secret", addonSlug)
+		volumeName := fmt.Sprintf("%d-%s-volume", env.ID.ID(), addonSlug)
 
 		secretCreationRequest := clusterDomain.SecretCreationRequest{
 			Name: secretName,
@@ -74,11 +79,11 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 				},
 				{
 					Name:  "POSTGRES_HOST",
-					Value: fmt.Sprintf("$%s_SERVICE_HOST", slugToEnvironmentVariable(addonSlug)),
+					Value: fmt.Sprintf("$%s_SERVICE_HOST", slugToEnvironmentVariable(serviceName)),
 				},
 				{
 					Name:  "POSTGRES_PORT",
-					Value: fmt.Sprintf("$%s_SERVICE_PORT", slugToEnvironmentVariable(addonSlug)),
+					Value: fmt.Sprintf("$%s_SERVICE_PORT", slugToEnvironmentVariable(serviceName)),
 				},
 			},
 		}
@@ -119,7 +124,6 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 			return nil, err.Append(domain.ErrUnableToCreateAddon)
 		}
 
-		serviceName := fmt.Sprintf("%s-service", addonSlug)
 		err = i.kubeClient.CreateService(env.Slug, clusterDomain.Service{
 			Name:           serviceName,
 			DeploymentName: addon.Slug,
@@ -132,8 +136,39 @@ func (i interactor) createPostgresAddon(service *domain.Service, r *request.Addo
 		if err != nil {
 			return nil, err.Append(domain.ErrUnableToCreateAddon)
 		}
-	}
 
+		err = i.kubeClient.CreatePersistentVolume(env.Slug, clusterDomain.PersistentVolume{
+			Name:        volumeName,
+			StorageSize: volumeSize,
+			MountPath:   postgresVolumeMountPath,
+		})
+
+		if err != nil {
+			return nil, err.Append(domain.ErrUnableToCreateAddon)
+		}
+
+		err = i.kubeClient.CreatePersistentVolumeClaim(env.Slug, clusterDomain.PersistentVolumeClaim{
+			Name:        volumeClaimName,
+			StorageSize: volumeSize,
+		})
+
+		if err != nil {
+			return nil, err.Append(domain.ErrUnableToCreateAddon)
+		}
+
+		err = i.kubeClient.AddVolumeToDeployment(env.Slug, addon.Slug, clusterDomain.VolumeDeployment{
+			Name:           volumeName,
+			ClaimName:      volumeClaimName,
+			DeploymentName: addon.Slug,
+			MountPath:      postgresVolumeMountPath,
+			StorageSize:    volumeSize,
+			SubPath:        "postgres",
+		})
+
+		if err != nil {
+			return nil, err.Append(domain.ErrUnableToCreateAddon)
+		}
+	}
 	return addon, nil
 }
 

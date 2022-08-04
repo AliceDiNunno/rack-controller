@@ -4,6 +4,7 @@ import (
 	e "github.com/AliceDiNunno/go-nested-traced-error"
 	"github.com/AliceDiNunno/rack-controller/src/adapters/rest/request"
 	"github.com/AliceDiNunno/rack-controller/src/core/domain"
+	"github.com/AliceDiNunno/rack-controller/src/core/domain/clusterDomain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -134,13 +135,14 @@ func (rH RoutesHandler) updateEnvironmentConfigHandler(c *gin.Context) {
 		rH.handleError(c, e.Wrap(ErrFormValidation))
 		return
 	}
-	/*
-		err := rH.usecases.UpdateEnvironmentConfig(environment, configRequest)
 
-		if err != nil {
-			rH.handleError(c, err)
-			return
-		}*/
+	env := clusterDomain.EnvironmentListFromMap(configRequest)
+	err := rH.usecases.UpdateEnvironmentConfig(environment, env)
+
+	if err != nil {
+		rH.handleError(c, err)
+		return
+	}
 
 	rH.handleSuccess(c, environment)
 }
