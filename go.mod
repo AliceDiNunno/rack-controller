@@ -1,6 +1,6 @@
 module github.com/AliceDiNunno/rack-controller
 
-go 1.17
+go 1.20
 
 require (
 	github.com/AliceDiNunno/go-logger-client v1.2.0
